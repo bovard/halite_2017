@@ -24,7 +24,6 @@ type Entity struct {
 	Owner  int
 	Id        int
 	Distance float64
-	IsPlanet bool
 }
 
 type Position struct {
@@ -89,7 +88,6 @@ func (self Entity) ClosestPointTo(target Entity, minDistance float64) Entity {
 		Health: 0,
 		Owner:  -1,
 		Id:     -1,
-		IsPlanet: false,
 	}
 }
 
@@ -113,7 +111,6 @@ func ParseShip(playerId int, tokens []string) (Ship, [] string) {
 		Health: shipHealth,
 		Owner:  playerId,
 		Id:     shipId,
-		IsPlanet: false,
 	}
 
 	ship := Ship{
@@ -150,7 +147,6 @@ func ParsePlanet(tokens []string) (Planet, [] string) {
 		Health: planetHealth,
 		Owner:  planetOwner,
 		Id:     planetId,
-		IsPlanet: true,
 	}
 
 	planet := Planet{

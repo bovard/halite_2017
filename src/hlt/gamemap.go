@@ -112,7 +112,6 @@ func (gameMap Map) NearestPlanetsByDistance(ship Ship) [] Planet {
 	planets := gameMap.Planets
 
 	for i := 0; i < len(planets); i++ {
-
 		planets[i].Distance = ship.CalculateDistanceTo(planets[i].Entity)
 	}
 
@@ -126,18 +125,16 @@ func (gameMap Map) NearestEnemiesByDistance(ship Ship) [] Entity {
 	entities := gameMap.Entities
 	var enemies []Entity
 	for _, e := range entities {
-		if (e.Id != gameMap.MyId && !e.IsPlanet) {
+		if (e.Owner != gameMap.MyId && e.Radius < 1) {
 			enemies = append(enemies, e)
 		}
 	}
 
-	for _, e := range enemies {
-		e.Distance = ship.CalculateDistanceTo(e)
+	for i := 0; i < len(enemies); i++ {
+		enemies[i].Distance = ship.CalculateDistanceTo(enemies[i])
 	}
 
-	if (len(enemies) > 1) {
-		sort.Sort(byDistEntity(enemies))
-	}
+	sort.Sort(byDistEntity(enemies))
 
 	return enemies
 }
