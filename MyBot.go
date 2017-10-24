@@ -13,7 +13,7 @@ import (
 
 func main() {
 	logging := true
-	botName := "GoBot"
+	botName := "bovard"
 
 	conn := hlt.NewConnection(botName)
 
