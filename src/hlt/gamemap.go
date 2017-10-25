@@ -66,6 +66,22 @@ func ParseGameString(gameString string, self Map) Map {
 	return self
 }
 
+func (gameMap Map) ObstaclesInPath(start Entity, magnitude float64, angle float64) bool {
+	for mag := 1.0; mag <= magnitude; mag++ {
+		intermediatePos := start.AddThrust(mag, angle)
+		for i := 0; i < len(gameMap.Entities); i++ {
+			entity := gameMap.Entities[i]
+			if entity.Id == start.Id {
+				continue
+			}
+			if (intermediatePos.CalculateDistanceTo(entity) < start.Radius + entity.Radius + .2) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (gameMap Map) ObstaclesBetween(start Entity, end Entity) bool {
 
 	x1 := start.X

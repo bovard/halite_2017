@@ -54,14 +54,40 @@ type Ship struct {
 	WeaponCooldown  float64
 }
 
-func (self Entity) RotateAround(target Entity, angle float64) Position {
+func (self Entity) RotateAround(target Entity, angle float64) Entity {
 	x1 := self.X - target.X
 	y1 := self.Y - target.Y
     x2 := x1 * math.Cos(angle) - y1 * math.Sin(angle)
 	y2 := x1 * math.Sin(angle) - y1 * math.Cos(angle)
-	return Position{
-		x2 + target.X,
-		y2 + target.Y,
+	return Entity{
+		X: x2 + target.X,
+		Y: y2 + target.Y,
+		Radius: 0,
+		Health: 0,
+		Owner:  -1,
+		Id:     -1,
+	}
+}
+
+func (self Entity) AddThrust(magnitude float64, angle float64) Entity {
+	return Entity {
+		X: self.X + magnitude * math.Cos(angle),
+		Y: self.Y + magnitude * math.Sin(angle),
+		Radius: 0,
+		Health: 0,
+		Owner:  -1,
+		Id:     -1,
+	}
+}
+
+func (self Entity) GetMidPoint(target Entity) Entity {
+	return Entity {
+		X: (self.X + target.X)/2,
+		Y: (self.Y + target.Y)/2,
+		Radius: 0,
+		Health: 0,
+		Owner:  -1,
+		Id:     -1,
 	}
 }
 
@@ -84,17 +110,8 @@ func (self Entity) CalculateAngleTo(target Entity) float64 {
 func (self Entity) ClosestPointTo(target Entity, minDistance float64) Entity {
 	// returns closest point to self that is at least minDistance from target
 	dist := self.CalculateDistanceTo(target) - target.Radius - minDistance
-	angle := self.CalculateAngleTo(target)
-	x := self.X + dist*math.Cos(angle)
-	y := self.Y + dist*math.Sin(angle)
-	return Entity{
-		X:      x,
-		Y:      y,
-		Radius: 0,
-		Health: 0,
-		Owner:  -1,
-		Id:     -1,
-	}
+	angle := target.CalculateAngleTo(self)
+	return target.AddThrust(dist, angle)
 }
 
 func ParseShip(playerId int, tokens []string) (Ship, [] string) {
@@ -179,6 +196,7 @@ func IntToDockingStatus(i int) DockingStatus {
 }
 
 func (ship Ship) Thrust(magnitude float64, angle float64) string {
+	angle = RadToDeg(angle)
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 }
 
@@ -190,12 +208,12 @@ func (ship Ship) Undock() string {
 	return fmt.Sprintf("u %s %s", strconv.Itoa(ship.Id))
 }
 
-func (ship Ship) NavigateBasic(target Entity, gameMap Map) string {
+func (ship Ship) NavigateBasic(target Entity) string {
 
 	distance := ship.CalculateDistanceTo(target)
 
 	angle := ship.CalculateAngleTo(target)
-	speed:=7.0
+	speed := SHIP_MAX_SPEED
 	if distance < SHIP_MAX_SPEED {
 		speed = distance - (SHIP_RADIUS + .1)
 	} 
@@ -206,7 +224,7 @@ func (ship Ship) NavigateBasic(target Entity, gameMap Map) string {
 func (ship Ship) CanDock(planet Planet) bool {
 	dist := ship.CalculateDistanceTo(planet.Entity)
 
-	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS)
+	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + ship.Radius)
 }
 
 func (ship Ship) Navigate(target Entity, gameMap Map) string {
@@ -215,7 +233,7 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 	ob := gameMap.ObstaclesBetween(ship.Entity, target)
 
 	if !ob {
-		return ship.NavigateBasic(target, gameMap)
+		return ship.NavigateBasic(target)
 	} else {
 
 		x0 := math.Min(ship.X, target.X)
@@ -255,8 +273,45 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 		}
 
 
-		return ship.NavigateBasic(bestTarget, gameMap)
+		return ship.NavigateBasic(bestTarget)
 
 	}
 
+}
+
+
+func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
+
+
+	ob := gameMap.ObstaclesBetween(ship.Entity, target)
+
+	if !ob {
+		return ship.NavigateBasic(target)
+	} else {
+		maxTurn := (3 * math.Pi) / 2
+		dTurn := math.Pi / 8
+
+		startSpeed := math.Min(SHIP_MAX_SPEED, ship.Entity.CalculateDistanceTo(target) - target.Radius - ship.Entity.Radius - .05)
+
+		for speed := startSpeed; speed > .25; speed /= 2 {
+			for turn := dTurn; turn <= maxTurn; turn += dTurn {
+				intermediateTargetLeft := ship.Entity.AddThrust(speed, turn)
+				obLeft := gameMap.ObstaclesInPath(ship.Entity, speed, turn)
+				intermediateTargetRight := ship.Entity.AddThrust(speed, -turn)
+				obRight := gameMap.ObstaclesInPath(ship.Entity, speed, -turn)
+				if !obLeft && !obRight {
+					if intermediateTargetLeft.CalculateDistanceTo(target) < intermediateTargetRight.CalculateDistanceTo(target) {
+						return ship.NavigateBasic(intermediateTargetLeft)
+					} else {
+						return ship.NavigateBasic(intermediateTargetRight)
+					}
+				} else if !obLeft {
+					return ship.NavigateBasic(intermediateTargetLeft)
+				} else if !obRight {
+					return ship.NavigateBasic(intermediateTargetRight)
+				}
+			}
+		}
+		return ship.NavigateBasic(target)
+	}
 }
