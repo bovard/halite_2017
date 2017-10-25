@@ -54,6 +54,17 @@ type Ship struct {
 	WeaponCooldown  float64
 }
 
+func (self Entity) RotateAround(target Entity, angle float64) Position {
+	x1 := self.X - target.X
+	y1 := self.Y - target.Y
+    x2 := x1 * math.Cos(angle) - y1 * math.Sin(angle)
+	y2 := x1 * math.Sin(angle) - y1 * math.Cos(angle)
+	return Position{
+		x2 + target.X,
+		y2 + target.Y,
+	}
+}
+
 func (self Entity) CalculateDistanceTo(target Entity) float64 {
 	// returns euclidean distance to target
 	dx := target.X - self.X
@@ -63,11 +74,6 @@ func (self Entity) CalculateDistanceTo(target Entity) float64 {
 }
 
 func (self Entity) CalculateAngleTo(target Entity) float64 {
-	// returns angle in degrees from self to target
-	return RadToDeg(self.CalculateRadAngleTo(target))
-}
-
-func (self Entity) CalculateRadAngleTo(target Entity) float64 {
 	// returns angle in radians from self to target
 	dx := target.X - self.X
 	dy := target.Y - self.Y
@@ -78,7 +84,7 @@ func (self Entity) CalculateRadAngleTo(target Entity) float64 {
 func (self Entity) ClosestPointTo(target Entity, minDistance float64) Entity {
 	// returns closest point to self that is at least minDistance from target
 	dist := self.CalculateDistanceTo(target) - target.Radius - minDistance
-	angle := self.CalculateRadAngleTo(target)
+	angle := self.CalculateAngleTo(target)
 	x := self.X + dist*math.Cos(angle)
 	y := self.Y + dist*math.Sin(angle)
 	return Entity{
@@ -173,7 +179,6 @@ func IntToDockingStatus(i int) DockingStatus {
 }
 
 func (ship Ship) Thrust(magnitude float64, angle float64) string {
-	//return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 }
 
@@ -191,12 +196,9 @@ func (ship Ship) NavigateBasic(target Entity, gameMap Map) string {
 
 	angle := ship.CalculateAngleTo(target)
 	speed:=7.0
-	if distance<10{
-		speed = 3.0
-	} else {
-		speed =7.0
-	}
-
+	if distance < SHIP_MAX_SPEED {
+		speed = distance - (SHIP_RADIUS + .1)
+	} 
 	speed = math.Min(speed, distance)
 	return ship.Thrust(speed, angle)
 }
@@ -204,7 +206,7 @@ func (ship Ship) NavigateBasic(target Entity, gameMap Map) string {
 func (ship Ship) CanDock(planet Planet) bool {
 	dist := ship.CalculateDistanceTo(planet.Entity)
 
-	return dist <= (planet.Radius + 6)
+	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS)
 }
 
 func (ship Ship) Navigate(target Entity, gameMap Map) string {
