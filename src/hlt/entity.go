@@ -288,11 +288,16 @@ func (ship Ship) NavigateSnail(target Entity, gameMap Map) string {
 	angle := ship.CalculateAngleTo(target)
 	speed := math.Min(maxMove, SHIP_MAX_SPEED)
 
+	// add points along the path
 	for mag := 1.0; mag <= speed; mag++ {
 		intermediatePos := ship.Entity.AddThrust(mag, angle)
 		intermediatePos.Radius = ship.Entity.Radius
 		gameMap.Entities = append(gameMap.Entities, intermediatePos)
 	}
+	// add the terminal location 
+	intermediatePos := ship.Entity.AddThrust(speed, angle)
+	intermediatePos.Radius = ship.Entity.Radius
+	gameMap.Entities = append(gameMap.Entities, intermediatePos)
 
 	return ship.Thrust(speed, angle)
 }
