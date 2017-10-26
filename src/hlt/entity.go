@@ -281,6 +281,22 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 }
 
 
+func (ship Ship) NavigateSnail(target Entity, gameMap Map) string {
+
+	maxMove := ship.CalculateDistanceTo(target) - (ship.Entity.Radius + target.Radius + .1)
+
+	angle := ship.CalculateAngleTo(target)
+	speed := math.Min(maxMove, SHIP_MAX_SPEED)
+
+	for mag := 1.0; mag <= speed; mag++ {
+		intermediatePos := ship.Entity.AddThrust(mag, angle)
+		intermediatePos.Radius = ship.Entity.Radius
+		gameMap.Entities = append(gameMap.Entities, intermediatePos)
+	}
+
+	return ship.Thrust(speed, angle)
+}
+
 func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
 	
 	maxTurn := (3 * math.Pi) / 2
@@ -291,7 +307,7 @@ func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
 
 	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
 	if !gameMap.ObstaclesInPath(ship.Entity, startSpeed, baseAngle) {
-		return ship.NavigateBasic(intermediateTarget)
+		return ship.NavigateSnail(intermediateTarget, gameMap)
 	}
 
 	for speed := startSpeed; speed > .25; speed /= 2 {
@@ -302,16 +318,16 @@ func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
 			obRight := gameMap.ObstaclesInPath(ship.Entity, speed, baseAngle - turn)
 			if !obLeft && !obRight {
 				if intermediateTargetLeft.CalculateDistanceTo(target) < intermediateTargetRight.CalculateDistanceTo(target) {
-					return ship.NavigateBasic(intermediateTargetLeft)
+					return ship.NavigateSnail(intermediateTargetLeft, gameMap)
 				} else {
-					return ship.NavigateBasic(intermediateTargetRight)
+					return ship.NavigateSnail(intermediateTargetRight, gameMap)
 				}
 			} else if !obLeft {
-				return ship.NavigateBasic(intermediateTargetLeft)
+				return ship.NavigateSnail(intermediateTargetLeft, gameMap)
 			} else if !obRight {
-				return ship.NavigateBasic(intermediateTargetRight)
+				return ship.NavigateSnail(intermediateTargetRight, gameMap)
 			}
 		}
 	}
-	return ship.NavigateBasic(target)
+	return ""
 }
