@@ -30,9 +30,7 @@ func main() {
 	gc := strat.GameController {
 		GameMap:                 &gameMap,
 		ShipControllers:         make(map[int]*strat.ShipController),
-		ShipToPlanetAssignments: make(map[int][]int),
 	}
-	gc.UpdatePlanets(gameMap.Planets)
 	for true {
 		gameMap = conn.UpdateMap()
 		gc.Update(&gameMap)
