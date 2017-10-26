@@ -215,14 +215,10 @@ func (ship Ship) Undock() string {
 
 func (ship Ship) NavigateBasic(target Entity) string {
 
-	distance := ship.CalculateDistanceTo(target)
+	maxMove := ship.CalculateDistanceTo(target) - (ship.Entity.Radius + target.Radius + .1)
 
 	angle := ship.CalculateAngleTo(target)
-	speed := SHIP_MAX_SPEED
-	if distance < SHIP_MAX_SPEED {
-		speed = distance - (SHIP_RADIUS + .1)
-	} 
-	speed = math.Min(speed, distance)
+	speed := math.Min(maxMove, SHIP_MAX_SPEED)
 	return ship.Thrust(speed, angle)
 }
 
@@ -286,37 +282,36 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 
 
 func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
+	
+	maxTurn := (3 * math.Pi) / 2
+	dTurn := math.Pi / 8
 
+	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Entity.CalculateDistanceTo(target) - target.Radius - ship.Entity.Radius - .05)
+	baseAngle := ship.Entity.CalculateAngleTo(target)
 
-	ob := gameMap.ObstaclesBetween(ship.Entity, target)
+	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
+	if !gameMap.ObstaclesInPath(ship.Entity, startSpeed, baseAngle) {
+		return ship.NavigateBasic(intermediateTarget)
+	}
 
-	if !ob {
-		return ship.NavigateBasic(target)
-	} else {
-		maxTurn := (3 * math.Pi) / 2
-		dTurn := math.Pi / 8
-
-		startSpeed := math.Min(SHIP_MAX_SPEED, ship.Entity.CalculateDistanceTo(target) - target.Radius - ship.Entity.Radius - .05)
-
-		for speed := startSpeed; speed > .25; speed /= 2 {
-			for turn := dTurn; turn <= maxTurn; turn += dTurn {
-				intermediateTargetLeft := ship.Entity.AddThrust(speed, turn)
-				obLeft := gameMap.ObstaclesInPath(ship.Entity, speed, turn)
-				intermediateTargetRight := ship.Entity.AddThrust(speed, -turn)
-				obRight := gameMap.ObstaclesInPath(ship.Entity, speed, -turn)
-				if !obLeft && !obRight {
-					if intermediateTargetLeft.CalculateDistanceTo(target) < intermediateTargetRight.CalculateDistanceTo(target) {
-						return ship.NavigateBasic(intermediateTargetLeft)
-					} else {
-						return ship.NavigateBasic(intermediateTargetRight)
-					}
-				} else if !obLeft {
+	for speed := startSpeed; speed > .25; speed /= 2 {
+		for turn := dTurn; turn <= maxTurn; turn += dTurn {
+			intermediateTargetLeft := ship.Entity.AddThrust(speed, baseAngle + turn)
+			obLeft := gameMap.ObstaclesInPath(ship.Entity, speed, baseAngle + turn)
+			intermediateTargetRight := ship.Entity.AddThrust(speed, baseAngle - turn)
+			obRight := gameMap.ObstaclesInPath(ship.Entity, speed, baseAngle - turn)
+			if !obLeft && !obRight {
+				if intermediateTargetLeft.CalculateDistanceTo(target) < intermediateTargetRight.CalculateDistanceTo(target) {
 					return ship.NavigateBasic(intermediateTargetLeft)
-				} else if !obRight {
+				} else {
 					return ship.NavigateBasic(intermediateTargetRight)
 				}
+			} else if !obLeft {
+				return ship.NavigateBasic(intermediateTargetLeft)
+			} else if !obRight {
+				return ship.NavigateBasic(intermediateTargetRight)
 			}
 		}
-		return ship.NavigateBasic(target)
 	}
+	return ship.NavigateBasic(target)
 }

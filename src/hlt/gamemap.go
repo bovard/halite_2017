@@ -13,6 +13,7 @@ type Map struct {
 	Planets             [] Planet /// preallocating for speed, assuming we cant have > 100 planets
 	Players             [4] Player
 	Entities            []Entity
+	PlanetsLookup       map[int]Planet
 }
 
 type Player struct {
@@ -60,6 +61,7 @@ func ParseGameString(gameString string, self Map) Map {
 		planet, tokensnew := ParsePlanet(tokens)
 		tokens = tokensnew
 		self.Planets = append(self.Planets, planet)
+		self.PlanetsLookup[planet.Entity.Id] = planet
 		self.Entities = append(self.Entities, planet.Entity)
 	}
 
@@ -67,7 +69,7 @@ func ParseGameString(gameString string, self Map) Map {
 }
 
 func (gameMap Map) ObstaclesInPath(start Entity, magnitude float64, angle float64) bool {
-	for mag := 1.0; mag <= magnitude; mag++ {
+	for mag := 0.5; mag <= magnitude; mag+=.5 {
 		intermediatePos := start.AddThrust(mag, angle)
 		for i := 0; i < len(gameMap.Entities); i++ {
 			entity := gameMap.Entities[i]

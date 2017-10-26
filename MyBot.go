@@ -28,30 +28,32 @@ func main() {
 	gameMap := conn.UpdateMap()
 	gameturn := 1
 	gc := strat.GameController {
-		GameMap:                 gameMap,
-		ShipControllers:         make(map[int]strat.ShipController),
+		GameMap:                 &gameMap,
+		ShipControllers:         make(map[int]*strat.ShipController),
 		ShipToPlanetAssignments: make(map[int][]int),
 	}
 	gc.UpdatePlanets(gameMap.Planets)
 	for true {
 		gameMap = conn.UpdateMap()
-		gc.Update(gameMap)
+		gc.Update(&gameMap)
+		gc.AssignToPlanets()
 		commandQueue := []string{}
 
 		myPlayer := gameMap.Players[gameMap.MyId]
 		myShips := myPlayer.Ships
 
 		for i := 0; i < len(myShips); i++ {
-			log.Printf("Ship #%v\n", i)
 			ship := myShips[i]
+			sc := *gc.ShipControllers[ship.Entity.Id]
+			log.Println(sc.Id, "is assigned to planet ", sc.Planet)
+			log.Println(sc.Ship.Entity.X, sc.Ship.Entity.Y)
+			log.Println(ship.Entity.X, ship.Entity.Y)
 			if ship.DockingStatus == hlt.UNDOCKED {
-				log.Printf("Starting turn\n")
-				cmd := hlt.SmarterBasicBot(ship, gameMap)
-				log.Printf("CMD %v\n", cmd)
+				cmd := sc.Act(&gameMap)
+				log.Println(cmd)
 				commandQueue = append(commandQueue, cmd)
 			}
 		}
-		log.Printf("Turn %v\n", gameturn)
 		conn.SubmitCommands(commandQueue)
 		gameturn++
 	}

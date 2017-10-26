@@ -61,6 +61,7 @@ func (c *Connection) UpdateMap() Map {
 		Planets:  []Planet{},
 		Players:  [4]Player{},
 		Entities: []Entity{},
+		PlanetsLookup: make(map[int]Planet),
 	}
 	//log.Printf("%+v\n",gameMap)
 	gameMap = ParseGameString(gameString, gameMap)

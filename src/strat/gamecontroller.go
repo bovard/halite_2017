@@ -3,24 +3,24 @@ package strat
 import ( "../hlt")
 
 type GameController struct {
-	GameMap                 hlt.Map
-	ShipControllers         map[int]ShipController
+	GameMap                 *hlt.Map
+	ShipControllers         map[int]*ShipController
 	ShipToPlanetAssignments map[int][]int
 }
 
-func (self GameController) UpdatePlanets(planets []hlt.Planet) {
+func (self *GameController) UpdatePlanets(planets []hlt.Planet) {
 	for _, p := range planets {
 		self.ShipToPlanetAssignments[p.Entity.Id] = make([]int, 0)
 	}
 }
 
-func (self GameController) Update(gameMap hlt.Map) {
+func (self *GameController) Update(gameMap *hlt.Map) {
 	self.GameMap = gameMap
 	myPlayer := gameMap.Players[gameMap.MyId]
 	myShips  := myPlayer.Ships
 
 	for key, _ := range self.ShipControllers {
-		sc := self.ShipControllers[key]
+		sc := *self.ShipControllers[key]
 		sc.Alive = false
 	}
 
@@ -28,16 +28,17 @@ func (self GameController) Update(gameMap hlt.Map) {
 		ship := myShips[i]
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
-			self.ShipControllers[ship.Entity.Id] = ShipController {
-				Ship:   ship,
+			sc := ShipController {
+				Ship:   &ship,
 				Past:   nil,
 				Id:     ship.Entity.Id,
 				Planet: -1,
 				Alive:  true,
 			}
+			self.ShipControllers[ship.Entity.Id] = &sc
 		} else {
 			sc := self.ShipControllers[ship.Entity.Id]
-			sc.Update(ship)
+			sc.Update(&ship)
 		}
 	}
 
@@ -58,7 +59,7 @@ func remove(s []int, i int) []int {
     return s[:len(s)-1]
 }
 
-func (self GameController) AssignToPlanets() {
+func (self *GameController) AssignToPlanets() {
 	var free [] hlt.Planet
 	for _, p := range self.GameMap.Planets {
 		assigned := len(self.ShipToPlanetAssignments[p.Entity.Id])
