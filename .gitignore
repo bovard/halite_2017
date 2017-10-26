@@ -1,2 +1,4 @@
 *.log
 *.hlt
+*.DS_Store
+*.zip

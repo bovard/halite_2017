@@ -32,8 +32,8 @@ type Position struct {
 
 type Planet struct {
 	Entity
-	NumDockingSpots    float64
-	NumDockedShips     float64
+	NumDockingSpots    int 
+	NumDockedShips     int
 	CurrentProduction  float64
 	RemainingResources float64
 	DockedShipIds      [] int
@@ -156,12 +156,12 @@ func ParsePlanet(tokens []string) (Planet, [] string) {
 	planetY, _ := strconv.ParseFloat(tokens[2], 64)
 	planetHealth, _ := strconv.ParseFloat(tokens[3], 64)
 	planetRadius, _ := strconv.ParseFloat(tokens[4], 64)
-	planetNumDockingSpots, _ := strconv.ParseFloat(tokens[5], 64)
+	planetNumDockingSpots, _ := strconv.ParseInt(tokens[5], 10, 32)
 	planetCurrentProduction, _ := strconv.ParseFloat(tokens[6], 64)
 	planetRemainingResources, _ := strconv.ParseFloat(tokens[7], 64)
 	planetOwned, _ := strconv.ParseFloat(tokens[8], 64)
 	planetOwner, _ := strconv.Atoi(tokens[9])
-	planetNumDockedShips, _ := strconv.ParseFloat(tokens[10], 64)
+	planetNumDockedShips, _ := strconv.ParseInt(tokens[10], 10, 32)
 
 	planetEntity := Entity{
 		X:      planetX,
@@ -173,8 +173,8 @@ func ParsePlanet(tokens []string) (Planet, [] string) {
 	}
 
 	planet := Planet{
-		NumDockingSpots:    planetNumDockingSpots,
-		NumDockedShips:     planetNumDockedShips,
+		NumDockingSpots:    int(planetNumDockingSpots),
+		NumDockedShips:     int(planetNumDockedShips),
 		CurrentProduction:  planetCurrentProduction,
 		RemainingResources: planetRemainingResources,
 		DockedShipIds:      nil,
@@ -197,6 +197,11 @@ func IntToDockingStatus(i int) DockingStatus {
 
 func (ship Ship) Thrust(magnitude float64, angle float64) string {
 	angle = RadToDeg(angle)
+	if angle < 0 {
+		angle += 360
+	} else if angle > 359 {
+		angle -= 360
+	}
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 }
 

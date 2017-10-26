@@ -2,14 +2,12 @@ package main
 
 import (
 	"./src/hlt"
+	"./src/strat"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 )
-
-// golang starter kit with logging and basic pathfinding
-// Arjun Viswanathan 2017 / github arjunvis
 
 func main() {
 	logging := true
@@ -29,8 +27,15 @@ func main() {
 	}
 	gameMap := conn.UpdateMap()
 	gameturn := 1
+	gc := strat.GameController {
+		GameMap:                 gameMap,
+		ShipControllers:         make(map[int]strat.ShipController),
+		ShipToPlanetAssignments: make(map[int][]int),
+	}
+	gc.UpdatePlanets(gameMap.Planets)
 	for true {
 		gameMap = conn.UpdateMap()
+		gc.Update(gameMap)
 		commandQueue := []string{}
 
 		myPlayer := gameMap.Players[gameMap.MyId]
