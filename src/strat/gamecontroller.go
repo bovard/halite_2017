@@ -75,7 +75,7 @@ func (self *GameController) AssignToPlanets() {
 			closest := -1
 			closestDist := 10000.0
 			for _, p := range free {
-				dist := sc.Ship.Entity.CalculateDistanceTo(p.Entity)
+				dist := sc.Ship.Entity.CalculateDistanceTo(&p.Entity)
 				assigned := assignments[p.Entity.Id]
 				if dist < closestDist && assigned < p.NumDockingSpots {
 					closestDist = dist

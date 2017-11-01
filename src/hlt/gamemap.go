@@ -68,7 +68,7 @@ func ParseGameString(gameString string, self Map) Map {
 	return self
 }
 
-func (gameMap Map) ObstaclesInPath(start Entity, magnitude float64, angle float64) bool {
+func (gameMap *Map) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
 	for mag := 0.5; mag <= magnitude; mag+=.5 {
 		intermediatePos := start.AddThrust(mag, angle)
 		for i := 0; i < len(gameMap.Entities); i++ {
@@ -76,7 +76,7 @@ func (gameMap Map) ObstaclesInPath(start Entity, magnitude float64, angle float6
 			if entity.Id == start.Id {
 				continue
 			}
-			if (intermediatePos.CalculateDistanceTo(entity) < start.Radius + entity.Radius + .2) {
+			if (intermediatePos.CalculateDistanceTo(&entity) < start.Radius + entity.Radius + .2) {
 				return true
 			}
 		}
@@ -84,7 +84,7 @@ func (gameMap Map) ObstaclesInPath(start Entity, magnitude float64, angle float6
 	return false
 }
 
-func (gameMap Map) ObstaclesBetween(start Entity, end Entity) bool {
+func (gameMap Map) ObstaclesBetween(start *Entity, end *Entity) bool {
 
 	x1 := start.X
 	y1 := start.Y
@@ -104,7 +104,7 @@ func (gameMap Map) ObstaclesBetween(start Entity, end Entity) bool {
 		x0 := entity.X
 		y0 := entity.Y
 
-		closest_distance := end.CalculateDistanceTo(entity)
+		closest_distance := end.CalculateDistanceTo(&entity)
 		if closest_distance < entity.Radius+1 {
 			return true
 		}
@@ -126,11 +126,11 @@ func (gameMap Map) ObstaclesBetween(start Entity, end Entity) bool {
 	}
 	return false
 }
-func (gameMap Map) NearestPlanetsByDistance(ship Ship) [] Planet {
+func (gameMap *Map) NearestPlanetsByDistance(ship *Ship) [] Planet {
 	planets := gameMap.Planets
 
 	for i := 0; i < len(planets); i++ {
-		planets[i].Distance = ship.CalculateDistanceTo(planets[i].Entity)
+		planets[i].Distance = ship.CalculateDistanceTo(&planets[i].Entity)
 	}
 
 	sort.Sort(byDist(planets))
@@ -149,7 +149,7 @@ func (gameMap Map) NearestEnemiesByDistance(ship Ship) [] Entity {
 	}
 
 	for i := 0; i < len(enemies); i++ {
-		enemies[i].Distance = ship.CalculateDistanceTo(enemies[i])
+		enemies[i].Distance = ship.CalculateDistanceTo(&enemies[i])
 	}
 
 	sort.Sort(byDistEntity(enemies))

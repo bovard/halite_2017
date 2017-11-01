@@ -37,6 +37,7 @@ func main() {
 		gc.AssignToPlanets()
 		commandQueue := []string{}
 
+		log.Println(-10 % 360)
 		myPlayer := gameMap.Players[gameMap.MyId]
 		myShips := myPlayer.Ships
 

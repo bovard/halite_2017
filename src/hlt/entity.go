@@ -17,12 +17,12 @@ const (
 )
 
 type Entity struct {
-	X      float64
-	Y      float64
-	Radius float64
-	Health float64
-	Owner  int
-	Id        int
+	X        float64
+	Y        float64
+	Radius   float64
+	Health   float64
+	Owner    int
+	Id       int
 	Distance float64
 }
 
@@ -46,7 +46,8 @@ type Ship struct {
 	Entity
 	VelX float64
 	VelY float64
-
+	NextVelX float64
+	NextVelY float64
 	PlanetId        int
 	Planet          Planet
 	DockingStatus   DockingStatus
@@ -54,7 +55,7 @@ type Ship struct {
 	WeaponCooldown  float64
 }
 
-func (self Entity) RotateAround(target Entity, angle float64) Entity {
+func (self *Entity) RotateAround(target *Entity, angle float64) Entity {
 	x1 := self.X - target.X
 	y1 := self.Y - target.Y
     x2 := x1 * math.Cos(angle) - y1 * math.Sin(angle)
@@ -69,7 +70,7 @@ func (self Entity) RotateAround(target Entity, angle float64) Entity {
 	}
 }
 
-func (self Entity) AddThrust(magnitude float64, angle float64) Entity {
+func (self *Entity) AddThrust(magnitude float64, angle float64) Entity {
 	return Entity {
 		X: self.X + magnitude * math.Cos(angle),
 		Y: self.Y + magnitude * math.Sin(angle),
@@ -80,7 +81,7 @@ func (self Entity) AddThrust(magnitude float64, angle float64) Entity {
 	}
 }
 
-func (self Entity) GetMidPoint(target Entity) Entity {
+func (self *Entity) GetMidPoint(target *Entity) Entity {
 	return Entity {
 		X: (self.X + target.X)/2,
 		Y: (self.Y + target.Y)/2,
@@ -91,7 +92,7 @@ func (self Entity) GetMidPoint(target Entity) Entity {
 	}
 }
 
-func (self Entity) CalculateDistanceTo(target Entity) float64 {
+func (self *Entity) CalculateDistanceTo(target *Entity) float64 {
 	// returns euclidean distance to target
 	dx := target.X - self.X
 	dy := target.Y - self.Y
@@ -99,7 +100,7 @@ func (self Entity) CalculateDistanceTo(target Entity) float64 {
 	return math.Sqrt(dx*dx + dy*dy)
 }
 
-func (self Entity) CalculateAngleTo(target Entity) float64 {
+func (self *Entity) CalculateAngleTo(target *Entity) float64 {
 	// returns angle in radians from self to target
 	dx := target.X - self.X
 	dy := target.Y - self.Y
@@ -107,7 +108,7 @@ func (self Entity) CalculateAngleTo(target Entity) float64 {
 	return math.Atan2(dy, dx)
 }
 
-func (self Entity) ClosestPointTo(target Entity, minDistance float64) Entity {
+func (self *Entity) ClosestPointTo(target *Entity, minDistance float64) Entity {
 	// returns closest point to self that is at least minDistance from target
 	dist := self.CalculateDistanceTo(target) - target.Radius - minDistance
 	angle := target.CalculateAngleTo(self)
@@ -143,6 +144,8 @@ func ParseShip(playerId int, tokens []string) (Ship, [] string) {
 		WeaponCooldown:  shipWeaponCooldown,
 		VelX:            shipVelX,
 		VelY:            shipVelY,
+		NextVelX:        0.0,
+		NextVelY:        0.0,
 		Entity:          shipEntity,
 	}
 
@@ -195,7 +198,7 @@ func IntToDockingStatus(i int) DockingStatus {
 	return statuses[i]
 }
 
-func (ship Ship) Thrust(magnitude float64, angle float64) string {
+func (ship *Ship) Thrust(magnitude float64, angle float64) string {
 	angle = RadToDeg(angle)
 	if angle < 0 {
 		angle += 360
@@ -205,15 +208,15 @@ func (ship Ship) Thrust(magnitude float64, angle float64) string {
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 }
 
-func (ship Ship) Dock(planet Planet) string {
+func (ship *Ship) Dock(planet *Planet) string {
 	return fmt.Sprintf("d %s %s", strconv.Itoa(ship.Id), strconv.Itoa(planet.Id))
 }
 
-func (ship Ship) Undock() string {
+func (ship *Ship) Undock() string {
 	return fmt.Sprintf("u %s %s", strconv.Itoa(ship.Id))
 }
 
-func (ship Ship) NavigateBasic(target Entity) string {
+func (ship *Ship) NavigateBasic(target *Entity) string {
 
 	maxMove := ship.CalculateDistanceTo(target) - (ship.Entity.Radius + target.Radius + .1)
 
@@ -222,16 +225,16 @@ func (ship Ship) NavigateBasic(target Entity) string {
 	return ship.Thrust(speed, angle)
 }
 
-func (ship Ship) CanDock(planet Planet) bool {
-	dist := ship.CalculateDistanceTo(planet.Entity)
+func (ship *Ship) CanDock(planet *Planet) bool {
+	dist := ship.CalculateDistanceTo(&planet.Entity)
 
 	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + ship.Radius)
 }
 
-func (ship Ship) Navigate(target Entity, gameMap Map) string {
+func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 
 
-	ob := gameMap.ObstaclesBetween(ship.Entity, target)
+	ob := gameMap.ObstaclesBetween(&ship.Entity, target)
 
 	if !ob {
 		return ship.NavigateBasic(target)
@@ -257,14 +260,14 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 					Owner:  0,
 					Id:     -1,
 				}
-				ob1 := gameMap.ObstaclesBetween(ship.Entity, intermediateTarget)
+				ob1 := gameMap.ObstaclesBetween(&ship.Entity, &intermediateTarget)
 				if !ob1 {
-					ob2 := gameMap.ObstaclesBetween(intermediateTarget, target)
+					ob2 := gameMap.ObstaclesBetween(&intermediateTarget, target)
 					if !ob2 {
 						totdist := math.Sqrt(math.Pow(x1-x0, 2)+math.Pow(y1-y0, 2)) + math.Sqrt(math.Pow(x1-x2, 2)+math.Pow(y1-y2, 2))
 						if totdist < bestdist {
 							bestdist = totdist
-							bestTarget = intermediateTarget
+							bestTarget = &intermediateTarget
 
 
 						}
@@ -281,7 +284,7 @@ func (ship Ship) Navigate(target Entity, gameMap Map) string {
 }
 
 
-func (ship Ship) NavigateSnail(target Entity, gameMap Map) string {
+func (ship *Ship) NavigateSnail(target *Entity, gameMap *Map) string {
 
 	maxMove := ship.CalculateDistanceTo(target) - (ship.Entity.Radius + target.Radius + .1)
 
@@ -302,7 +305,7 @@ func (ship Ship) NavigateSnail(target Entity, gameMap Map) string {
 	return ship.Thrust(speed, angle)
 }
 
-func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
+func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 	
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 8
@@ -311,26 +314,26 @@ func (ship Ship) BetterNavigate(target Entity, gameMap Map) string {
 	baseAngle := ship.Entity.CalculateAngleTo(target)
 
 	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
-	if !gameMap.ObstaclesInPath(ship.Entity, startSpeed, baseAngle) {
-		return ship.NavigateSnail(intermediateTarget, gameMap)
+	if !gameMap.ObstaclesInPath(&ship.Entity, startSpeed, baseAngle) {
+		return ship.NavigateSnail(&intermediateTarget, gameMap)
 	}
 
 	for speed := startSpeed; speed > .25; speed /= 2 {
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			intermediateTargetLeft := ship.Entity.AddThrust(speed, baseAngle + turn)
-			obLeft := gameMap.ObstaclesInPath(ship.Entity, speed, baseAngle + turn)
+			obLeft := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle + turn)
 			intermediateTargetRight := ship.Entity.AddThrust(speed, baseAngle - turn)
-			obRight := gameMap.ObstaclesInPath(ship.Entity, speed, baseAngle - turn)
+			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle - turn)
 			if !obLeft && !obRight {
 				if intermediateTargetLeft.CalculateDistanceTo(target) < intermediateTargetRight.CalculateDistanceTo(target) {
-					return ship.NavigateSnail(intermediateTargetLeft, gameMap)
+					return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
 				} else {
-					return ship.NavigateSnail(intermediateTargetRight, gameMap)
+					return ship.NavigateSnail(&intermediateTargetRight, gameMap)
 				}
 			} else if !obLeft {
-				return ship.NavigateSnail(intermediateTargetLeft, gameMap)
+				return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
 			} else if !obRight {
-				return ship.NavigateSnail(intermediateTargetRight, gameMap)
+				return ship.NavigateSnail(&intermediateTargetRight, gameMap)
 			}
 		}
 	}

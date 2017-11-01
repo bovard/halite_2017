@@ -9,3 +9,4 @@ func DegToRad(d float64) float64{
 func RadToDeg(r float64) float64{
 	return r / math.Pi * 180
 }
+
