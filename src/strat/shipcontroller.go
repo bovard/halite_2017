@@ -20,7 +20,7 @@ func (self *ShipController) Act(gameMap *hlt.Map) string {
 	closetEnemy := enemies[0].Distance
 	if self.Planet != -1 {
 		planet := gameMap.PlanetsLookup[self.Planet]
-		planetDist := self.Ship.Entity.CalculateDistanceTo(&planet.Entity)
+		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
 		if closetEnemy / 2 < planetDist {
 			self.Planet = -1
 			return self.Ship.BetterNavigate(&enemies[0], gameMap)

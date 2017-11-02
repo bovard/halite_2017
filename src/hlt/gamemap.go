@@ -76,7 +76,7 @@ func (gameMap *Map) ObstaclesInPath(start *Entity, magnitude float64, angle floa
 			if entity.Id == start.Id {
 				continue
 			}
-			if (intermediatePos.CalculateDistanceTo(&entity) < start.Radius + entity.Radius + .2) {
+			if (intermediatePos.CalculateDistanceTo(&entity.Point) < start.Radius + entity.Radius + .2) {
 				return true
 			}
 		}
@@ -104,7 +104,7 @@ func (gameMap Map) ObstaclesBetween(start *Entity, end *Entity) bool {
 		x0 := entity.X
 		y0 := entity.Y
 
-		closest_distance := end.CalculateDistanceTo(&entity)
+		closest_distance := end.Point.CalculateDistanceTo(&entity.Point)
 		if closest_distance < entity.Radius+1 {
 			return true
 		}
@@ -130,7 +130,7 @@ func (gameMap *Map) NearestPlanetsByDistance(ship *Ship) [] Planet {
 	planets := gameMap.Planets
 
 	for i := 0; i < len(planets); i++ {
-		planets[i].Distance = ship.CalculateDistanceTo(&planets[i].Entity)
+		planets[i].Distance = ship.Entity.Point.CalculateDistanceTo(&planets[i].Entity.Point)
 	}
 
 	sort.Sort(byDist(planets))
@@ -149,7 +149,7 @@ func (gameMap Map) NearestEnemiesByDistance(ship Ship) [] Entity {
 	}
 
 	for i := 0; i < len(enemies); i++ {
-		enemies[i].Distance = ship.CalculateDistanceTo(&enemies[i])
+		enemies[i].Distance = ship.Entity.Point.CalculateDistanceTo(&enemies[i].Point)
 	}
 
 	sort.Sort(byDistEntity(enemies))
