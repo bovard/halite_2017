@@ -27,9 +27,9 @@ func main() {
 	}
 	gameMap := conn.UpdateMap()
 	gameturn := 1
-	gc := strat.GameController {
-		GameMap:                 &gameMap,
-		ShipControllers:         make(map[int]*strat.ShipController),
+	gc := strat.GameController{
+		GameMap:         &gameMap,
+		ShipControllers: make(map[int]*strat.ShipController),
 	}
 	for true {
 		gameMap = conn.UpdateMap()
@@ -49,7 +49,7 @@ func main() {
 				targetPlanet := gameMap.PlanetsLookup[sc.Planet]
 				log.Println("planet locatino is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
 				rad := ship.Point.AngleTo(&targetPlanet.Point)
-				log.Println(int(360 + hlt.RadToDeg(rad)) % 360)
+				log.Println(int(360+hlt.RadToDeg(rad)) % 360)
 			}
 			if ship.DockingStatus == hlt.UNDOCKED {
 				cmd := sc.Act(&gameMap)
