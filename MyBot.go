@@ -46,7 +46,10 @@ func main() {
 			log.Println(sc.Id, "is assigned to planet ", sc.Planet)
 			log.Println(sc.Ship.Entity.X, sc.Ship.Entity.Y)
 			log.Println(ship.Entity.X, ship.Entity.Y)
-			log.Println(ship.Point)
+			if sc.Planet != -1 {
+				targetPlanet := gameMap.PlanetsLookup[sc.Planet]
+				log.Println(ship.Point.AngleTo(&targetPlanet.Point))
+			}
 			if ship.DockingStatus == hlt.UNDOCKED {
 				cmd := sc.Act(&gameMap)
 				log.Println(cmd)
