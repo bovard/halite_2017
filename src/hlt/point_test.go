@@ -85,7 +85,7 @@ func ExampleDistanceTo() {
 	// 5
 }
 
-func ExampleCalculateAngleTo() {
+func ExampleAngleTo() {
 	first := Point {
 		X: 10,
 		Y: 10,
@@ -98,10 +98,10 @@ func ExampleCalculateAngleTo() {
 		X: 10,
 		Y: 13,
 	}
-	fmt.Println(first.CalculateAngleTo(&second))
-	fmt.Println(RadToDeg(first.CalculateAngleTo(&third)))
-	fmt.Println(RadToDeg(third.CalculateAngleTo(&second)))
-	fmt.Println(RadToDeg(second.CalculateAngleTo(&third)))
+	fmt.Println(first.AngleTo(&second))
+	fmt.Println(RadToDeg(first.AngleTo(&third)))
+	fmt.Println(RadToDeg(third.AngleTo(&second)))
+	fmt.Println(RadToDeg(second.AngleTo(&third)))
 	// Output:
 	// 0
 	// 90

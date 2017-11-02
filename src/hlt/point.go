@@ -42,7 +42,7 @@ func (self *Point) DistanceTo(target *Point) float64 {
 }
 
 
-func (self *Point) CalculateAngleTo(target *Point) float64 {
+func (self *Point) AngleTo(target *Point) float64 {
 	// returns angle in radians from self to target
 	dx := target.X - self.X
 	dy := target.Y - self.Y

@@ -103,7 +103,7 @@ func (ship *Ship) NavigateBasic(target *Entity) string {
 
 	maxMove := ship.Point.DistanceTo(&target.Point) - (ship.Entity.Radius + target.Radius + .1)
 
-	angle := ship.Point.CalculateAngleTo(&target.Point)
+	angle := ship.Point.AngleTo(&target.Point)
 	speed := math.Min(maxMove, SHIP_MAX_SPEED)
 	return ship.Thrust(speed, angle)
 }
@@ -175,7 +175,7 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 
 	maxMove := ship.Point.DistanceTo(target) - (ship.Entity.Radius + .1)
 
-	angle := ship.CalculateAngleTo(target)
+	angle := ship.AngleTo(target)
 	speed := math.Min(maxMove, SHIP_MAX_SPEED)
 
 	// add points along the path
@@ -206,7 +206,7 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 	dTurn := math.Pi / 8
 
 	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point) - target.Radius - ship.Entity.Radius - .05)
-	baseAngle := ship.Point.CalculateAngleTo(&target.Point)
+	baseAngle := ship.Point.AngleTo(&target.Point)
 
 	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
 	if !gameMap.ObstaclesInPath(&ship.Entity, startSpeed, baseAngle) {
