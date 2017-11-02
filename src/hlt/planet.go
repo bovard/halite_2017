@@ -6,18 +6,17 @@ import (
 
 type Planet struct {
 	Entity
-	NumDockingSpots    int 
+	NumDockingSpots    int
 	NumDockedShips     int
 	CurrentProduction  float64
 	RemainingResources float64
-	DockedShipIds      [] int
-	DockedShips        [] Ship
+	DockedShipIds      []int
+	DockedShips        []Ship
 	Owned              float64
 	Distance           float64
 }
 
-
-func ParsePlanet(tokens []string) (Planet, [] string) {
+func ParsePlanet(tokens []string) (Planet, []string) {
 
 	planetId, _ := strconv.Atoi(tokens[0])
 	planetX, _ := strconv.ParseFloat(tokens[1], 64)

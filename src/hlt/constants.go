@@ -1,6 +1,6 @@
 package hlt
 
-const SHIP_MAX_SPEED float64  = 7.0
+const SHIP_MAX_SPEED float64 = 7.0
 const SHIP_MAX_HEALTH float64 = 255
 const SHIP_MAX_ATTACK_RANGE float64 = 5
 const SHIP_RADIUS float64 = .5

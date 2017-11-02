@@ -5,7 +5,7 @@ import (
 )
 
 func ExampleClosestPointTo() {
-	firstP := Point {
+	firstP := Point{
 		X: 10,
 		Y: 10,
 	}
@@ -16,7 +16,7 @@ func ExampleClosestPointTo() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	secondP := Point {
+	secondP := Point{
 		X: 13,
 		Y: 10,
 	}

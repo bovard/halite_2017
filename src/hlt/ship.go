@@ -1,16 +1,16 @@
 package hlt
 
 import (
-	"math"
-	"strconv"
 	"fmt"
 	"log"
+	"math"
+	"strconv"
 )
 
 type DockingStatus int
 
 const (
-	UNDOCKED  DockingStatus = iota
+	UNDOCKED DockingStatus = iota
 	DOCKING
 	DOCKED
 	UNDOCKING
@@ -18,8 +18,8 @@ const (
 
 type Ship struct {
 	Entity
-	Vel Vector
-	NextVel Vector
+	Vel             Vector
+	NextVel         Vector
 	PlanetId        int
 	Planet          Planet
 	DockingStatus   DockingStatus
@@ -27,7 +27,7 @@ type Ship struct {
 	WeaponCooldown  float64
 }
 
-func ParseShip(playerId int, tokens []string) (Ship, [] string) {
+func ParseShip(playerId int, tokens []string) (Ship, []string) {
 
 	shipId, _ := strconv.Atoi(tokens[0])
 	shipX, _ := strconv.ParseFloat(tokens[1], 64)
@@ -40,26 +40,26 @@ func ParseShip(playerId int, tokens []string) (Ship, [] string) {
 	shipDockingProgress, _ := strconv.ParseFloat(tokens[8], 64)
 	shipWeaponCooldown, _ := strconv.ParseFloat(tokens[9], 64)
 
-	shipPoint := Point {
+	shipPoint := Point{
 		X: shipX,
 		Y: shipY,
 	}
 
 	shipEntity := Entity{
-		Point: shipPoint,
+		Point:  shipPoint,
 		Radius: .5,
 		Health: shipHealth,
 		Owner:  playerId,
 		Id:     shipId,
 	}
 
-	shipVel := Vector {
+	shipVel := Vector{
 		X: shipVelX,
 		Y: shipVelY,
 	}
 
-	nextVel := Vector { 
-		X: 0, 
+	nextVel := Vector{
+		X: 0,
 		Y: 0,
 	}
 
@@ -75,7 +75,6 @@ func ParseShip(playerId int, tokens []string) (Ship, [] string) {
 
 	return ship, tokens[10:]
 }
-
 
 func IntToDockingStatus(i int) DockingStatus {
 	statuses := [4]DockingStatus{UNDOCKED, DOCKING, DOCKED, UNDOCKING}
@@ -116,7 +115,7 @@ func (ship *Ship) CanDock(planet *Planet) bool {
 }
 
 func (ship *Ship) WillPathCollideWithPlanet(thrust float64, angle float64, planet *Planet) bool {
-	if (thrust == 0) {
+	if thrust == 0 {
 		return false
 	}
 
@@ -124,7 +123,6 @@ func (ship *Ship) WillPathCollideWithPlanet(thrust float64, angle float64, plane
 }
 
 func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
-
 
 	ob := gameMap.ObstaclesBetween(&ship.Entity, target)
 
@@ -145,8 +143,8 @@ func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 		for x1 := x0; x1 <= x2; x1 += dx {
 			for y1 := y0; y1 <= y2; y1 += dy {
 				intermediateTarget := Point{
-					X:      x1,
-					Y:      y1,
+					X: x1,
+					Y: y1,
 				}
 				intermediateEntity := Entity{
 					Point: intermediateTarget,
@@ -160,7 +158,6 @@ func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 							bestdist = totdist
 							bestTarget = &intermediateEntity
 
-
 						}
 					}
 				}
@@ -170,7 +167,6 @@ func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 	}
 
 }
-
 
 func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 
@@ -182,19 +178,19 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 	// add points along the path
 	for mag := 1.0; mag <= speed; mag++ {
 		intermediatePos := ship.Entity.AddThrust(mag, angle)
-		intermediateEntity := Entity {
+		intermediateEntity := Entity{
 			Point:  intermediatePos,
 			Radius: ship.Entity.Radius,
-			Owner: -1,
+			Owner:  -1,
 		}
 		gameMap.Entities = append(gameMap.Entities, intermediateEntity)
 	}
-	// add the terminal location 
+	// add the terminal location
 	intermediatePos := ship.Entity.AddThrust(speed, angle)
-	intermediateEntity := Entity {
+	intermediateEntity := Entity{
 		Point:  intermediatePos,
 		Radius: ship.Entity.Radius,
-		Owner: -1,
+		Owner:  -1,
 	}
 	gameMap.Entities = append(gameMap.Entities, intermediateEntity)
 
@@ -203,11 +199,11 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 
 func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 	log.Println("betternavigation from ", ship.Point, " to ", target.Point, " with id ", target.Id)
-	
+
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 8
 
-	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point) - target.Radius - ship.Radius - .05)
+	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point)-target.Radius-ship.Radius-.05)
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := ship.Point.AngleTo(&target.Point)
 
@@ -221,10 +217,10 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 		log.Println("Trying speed, ", speed)
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
-			intermediateTargetLeft := ship.AddThrust(speed, baseAngle + turn)
-			obLeft := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle + turn)
-			intermediateTargetRight := ship.AddThrust(speed, baseAngle - turn)
-			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle - turn)
+			intermediateTargetLeft := ship.AddThrust(speed, baseAngle+turn)
+			obLeft := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle+turn)
+			intermediateTargetRight := ship.AddThrust(speed, baseAngle-turn)
+			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle-turn)
 			if !obLeft && !obRight {
 				if intermediateTargetLeft.SqDistanceTo(&target.Point) < intermediateTargetRight.SqDistanceTo(&target.Point) {
 					return ship.NavigateSnail(&intermediateTargetLeft, gameMap)

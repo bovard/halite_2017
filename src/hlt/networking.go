@@ -2,12 +2,12 @@ package hlt
 
 import (
 	"bufio"
-	"io"
 	"fmt"
+	"io"
 	"log"
-	"strings"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Connection struct {
@@ -35,7 +35,7 @@ func (c *Connection) getInt() int {
 	return i
 }
 
-func NewConnection(botName string) (Connection) {
+func NewConnection(botName string) Connection {
 	conn := Connection{
 		reader: bufio.NewReader(os.Stdin),
 		writer: os.Stdout,
@@ -55,12 +55,12 @@ func (c *Connection) UpdateMap() Map {
 	gameString := c.getString()
 
 	gameMap := Map{
-		MyId:     c.PlayerTag,
-		Width:    c.width,
-		Height:   c.height,
-		Planets:  []Planet{},
-		Players:  [4]Player{},
-		Entities: []Entity{},
+		MyId:          c.PlayerTag,
+		Width:         c.width,
+		Height:        c.height,
+		Planets:       []Planet{},
+		Players:       [4]Player{},
+		Entities:      []Entity{},
 		PlanetsLookup: make(map[int]Planet),
 	}
 	//log.Printf("%+v\n",gameMap)
@@ -69,7 +69,7 @@ func (c *Connection) UpdateMap() Map {
 	return gameMap
 }
 
-func (c *Connection) SubmitCommands(commandQueue [] string) {
+func (c *Connection) SubmitCommands(commandQueue []string) {
 	commandString := strings.Join(commandQueue, " ")
 	log.Printf("Final string : %+v\n", commandString)
 	c.sendString(commandString)

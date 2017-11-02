@@ -5,13 +5,12 @@ import (
 	"math"
 )
 
-
 func ExampleRotateAround() {
-	center := Point {
+	center := Point{
 		X: 10,
 		Y: 10,
 	}
-	point := Point {
+	point := Point{
 		X: 12,
 		Y: 10,
 	}
@@ -28,7 +27,7 @@ func ExampleRotateAround() {
 }
 
 func ExampleAddThrust() {
-	center := Point {
+	center := Point{
 		X: 10,
 		Y: 10,
 	}
@@ -45,13 +44,13 @@ func ExampleAddThrust() {
 }
 
 func ExampleGetMidPoint() {
-	first := Point {
+	first := Point{
 		X: 10,
 		Y: 8,
 	}
-	second := Point {
-		X:  12,
-		Y:  10,
+	second := Point{
+		X: 12,
+		Y: 10,
 	}
 	result := first.GetMidPoint(&second)
 	fmt.Println(result.X, result.Y)
@@ -62,17 +61,16 @@ func ExampleGetMidPoint() {
 	// 11 9
 }
 
-
 func ExampleDistanceTo() {
-	first := Point {
+	first := Point{
 		X: 10,
 		Y: 10,
 	}
-	second := Point {
+	second := Point{
 		X: 13,
 		Y: 10,
 	}
-	third := Point {
+	third := Point{
 		X: 10,
 		Y: 14,
 	}
@@ -86,15 +84,15 @@ func ExampleDistanceTo() {
 }
 
 func ExampleAngleTo() {
-	first := Point {
+	first := Point{
 		X: 10,
 		Y: 10,
 	}
-	second := Point {
+	second := Point{
 		X: 13,
 		Y: 10,
 	}
-	third := Point {
+	third := Point{
 		X: 10,
 		Y: 13,
 	}
@@ -109,29 +107,28 @@ func ExampleAngleTo() {
 	// 135
 }
 
-
 func ExampleGetClosestPointOnLine() {
-	v1 := Point {
+	v1 := Point{
 		X: 0.0,
 		Y: 0.0,
 	}
-	v2 := Point {
+	v2 := Point{
 		X: 0.0,
 		Y: 10.0,
 	}
-	v3 := Point {
+	v3 := Point{
 		X: 10.0,
 		Y: 0.0,
 	}
-	v4 := Point {
+	v4 := Point{
 		X: 10.0,
 		Y: 10.0,
 	}
-	p := Point {
+	p := Point{
 		X: 5.0,
 		Y: 5.0,
 	}
-		
+
 	result := GetClosestPointOnLine(&v1, &v2, &p)
 	fmt.Println(result.X, result.Y)
 	result = GetClosestPointOnLine(&v1, &v3, &p)
@@ -140,8 +137,6 @@ func ExampleGetClosestPointOnLine() {
 	fmt.Println(result.X, result.Y)
 	// Output:
 	// 0 5
-	// 5 0 
+	// 5 0
 	// 5 5
 }
-
-
