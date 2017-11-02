@@ -11,7 +11,7 @@ import (
 
 func main() {
 	logging := true
-	botName := "current"
+	botName := "bovard"
 
 	conn := hlt.NewConnection(botName)
 
