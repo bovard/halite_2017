@@ -115,6 +115,14 @@ func (self *Entity) ClosestPointTo(target *Entity, minDistance float64) Entity {
 	return target.AddThrust(dist, angle)
 }
 
+func (self *Position) DotProduct(other *Position) float64 {
+	return self.X * other.X + self.Y * other.Y
+}
+
+func (self *Position) Magnitude() float64 {
+	return self.X * self.X + self.Y * self.Y
+}
+
 func ParseShip(playerId int, tokens []string) (Ship, [] string) {
 
 	shipId, _ := strconv.Atoi(tokens[0])
@@ -229,6 +237,14 @@ func (ship *Ship) CanDock(planet *Planet) bool {
 	dist := ship.CalculateDistanceTo(&planet.Entity)
 
 	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + ship.Radius)
+}
+
+func (ship *Ship) WillPathCollideWithPlanet(thrust float64, angle float64, planet *Planet) bool {
+	if (thrust == 0) {
+		return false
+	}
+
+	return true
 }
 
 func (ship *Ship) Navigate(target *Entity, gameMap Map) string {

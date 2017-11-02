@@ -23,11 +23,11 @@ func ExampleRotateAround() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	result := point.RotateAround(center, math.Pi)
+	result := point.RotateAround(&center, math.Pi)
 	fmt.Println(result.X, result.Y)
-	result = point.RotateAround(center, 0)
+	result = point.RotateAround(&center, 0)
 	fmt.Println(result.X, result.Y)
-	result = point.RotateAround(center, math.Pi/2)
+	result = point.RotateAround(&center, math.Pi/2)
 	fmt.Println(result.X, result.Y)
 	// Output:
 	// 8 10
@@ -73,9 +73,9 @@ func ExampleGetMidPoint() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	result := first.GetMidPoint(second)
+	result := first.GetMidPoint(&second)
 	fmt.Println(result.X, result.Y)
-	result = second.GetMidPoint(first)
+	result = second.GetMidPoint(&first)
 	fmt.Println(result.X, result.Y)
 	// Output:
 	// 11 9
@@ -108,9 +108,9 @@ func ExampleCalculateDistanceTo() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	fmt.Println(first.CalculateDistanceTo(second))
-	fmt.Println(first.CalculateDistanceTo(third))
-	fmt.Println(second.CalculateDistanceTo(third))
+	fmt.Println(first.CalculateDistanceTo(&second))
+	fmt.Println(first.CalculateDistanceTo(&third))
+	fmt.Println(second.CalculateDistanceTo(&third))
 	// Output:
 	// 3
 	// 4
@@ -142,10 +142,10 @@ func ExampleCalculateAngleTo() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	fmt.Println(first.CalculateAngleTo(second))
-	fmt.Println(RadToDeg(first.CalculateAngleTo(third)))
-	fmt.Println(RadToDeg(third.CalculateAngleTo(second)))
-	fmt.Println(RadToDeg(second.CalculateAngleTo(third)))
+	fmt.Println(first.CalculateAngleTo(&second))
+	fmt.Println(RadToDeg(first.CalculateAngleTo(&third)))
+	fmt.Println(RadToDeg(third.CalculateAngleTo(&second)))
+	fmt.Println(RadToDeg(second.CalculateAngleTo(&third)))
 	// Output:
 	// 0
 	// 90
@@ -170,9 +170,9 @@ func ExampleClosestPointTo() {
 		Owner:  -1,
 		Id:     -1,
 	}
-	result := first.ClosestPointTo(second, 1)
+	result := first.ClosestPointTo(&second, 1)
 	fmt.Println(result.X, result.Y)
-	result = second.ClosestPointTo(first, .5)
+	result = second.ClosestPointTo(&first, .5)
 	fmt.Println(result.X, result.Y)
 	// Output:
 	// 11 10
