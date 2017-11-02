@@ -1,6 +1,9 @@
 package strat
 
-import ( "../hlt")
+import ( 
+  "log"
+  "../hlt"
+)
 
 type ShipController struct {
 	Ship     *hlt.Ship
@@ -16,11 +19,13 @@ func (self *ShipController) Update(ship *hlt.Ship) {
 
 
 func (self *ShipController) Act(gameMap *hlt.Map) string {
+	log.Println("Ship ", self.Id, " Act. Planet is ", self.Planet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
 	closetEnemy := enemies[0].Distance
 	if self.Planet != -1 {
 		planet := gameMap.PlanetsLookup[self.Planet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
+		log.Println("distance to enemy is ", closetEnemy.Distance, )
 		if closetEnemy / 2 < planetDist {
 			self.Planet = -1
 			return self.Ship.BetterNavigate(&enemies[0], gameMap)
@@ -28,6 +33,7 @@ func (self *ShipController) Act(gameMap *hlt.Map) string {
 			if self.Ship.CanDock(&planet) {
 				return self.Ship.Dock(&planet)
 			} else {
+				log.Println("moving toward planet", planet.Id)
 				//return self.Ship.NavigateBasic(planet.Entity)
 				return self.Ship.BetterNavigate(&planet.Entity, gameMap)
 			}

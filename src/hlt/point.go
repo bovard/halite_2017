@@ -42,6 +42,15 @@ func (self *Point) DistanceTo(target *Point) float64 {
 }
 
 
+func (self *Point) SqDistanceTo(target *Point) float64 {
+	// returns euclidean distance to target
+	dx := target.X - self.X
+	dy := target.Y - self.Y
+	return dx*dx + dy*dy
+}
+
+
+
 func (self *Point) AngleTo(target *Point) float64 {
 	// returns angle in radians from self to target
 	dx := target.X - self.X

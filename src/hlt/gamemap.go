@@ -143,7 +143,7 @@ func (gameMap Map) NearestEnemiesByDistance(ship Ship) [] Entity {
 	entities := gameMap.Entities
 	var enemies []Entity
 	for _, e := range entities {
-		if (e.Owner != gameMap.MyId && e.Radius < 1) {
+		if (e.Owner != gameMap.MyId && e.Owner != -1 && e.Radius < 1) {
 			enemies = append(enemies, e)
 		}
 	}

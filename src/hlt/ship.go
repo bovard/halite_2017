@@ -4,6 +4,7 @@ import (
 	"math"
 	"strconv"
 	"fmt"
+	"log"
 )
 
 type DockingStatus int
@@ -201,26 +202,31 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 }
 
 func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
+	log.Println("betternavigation from ", ship.Point, " to ", target.Point, " with id ", target.Id)
 	
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 8
 
-	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point) - target.Radius - ship.Entity.Radius - .05)
+	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point) - target.Radius - ship.Radius - .05)
+	log.Println("setting start speed to ", startSpeed)
 	baseAngle := ship.Point.AngleTo(&target.Point)
 
 	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
 	if !gameMap.ObstaclesInPath(&ship.Entity, startSpeed, baseAngle) {
+		log.Println("Way is clear to planet!")
 		return ship.NavigateSnail(&intermediateTarget, gameMap)
 	}
 
 	for speed := startSpeed; speed > .25; speed /= 2 {
+		log.Println("Trying speed, ", speed)
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
-			intermediateTargetLeft := ship.Entity.AddThrust(speed, baseAngle + turn)
+			log.Println("Trying turn, ", turn)
+			intermediateTargetLeft := ship.AddThrust(speed, baseAngle + turn)
 			obLeft := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle + turn)
-			intermediateTargetRight := ship.Entity.AddThrust(speed, baseAngle - turn)
+			intermediateTargetRight := ship.AddThrust(speed, baseAngle - turn)
 			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle - turn)
 			if !obLeft && !obRight {
-				if intermediateTargetLeft.DistanceTo(&target.Point) < intermediateTargetRight.DistanceTo(&target.Point) {
+				if intermediateTargetLeft.SqDistanceTo(&target.Point) < intermediateTargetRight.SqDistanceTo(&target.Point) {
 					return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
 				} else {
 					return ship.NavigateSnail(&intermediateTargetRight, gameMap)

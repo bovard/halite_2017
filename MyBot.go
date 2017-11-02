@@ -44,11 +44,12 @@ func main() {
 			ship := myShips[i]
 			sc := *gc.ShipControllers[ship.Entity.Id]
 			log.Println(sc.Id, "is assigned to planet ", sc.Planet)
-			log.Println(sc.Ship.Entity.X, sc.Ship.Entity.Y)
-			log.Println(ship.Entity.X, ship.Entity.Y)
+			log.Println(ship.Point)
 			if sc.Planet != -1 {
 				targetPlanet := gameMap.PlanetsLookup[sc.Planet]
-				log.Println(ship.Point.AngleTo(&targetPlanet.Point))
+				log.Println("planet locatino is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
+				rad := ship.Point.AngleTo(&targetPlanet.Point)
+				log.Println(int(360 + hlt.RadToDeg(rad)) % 360)
 			}
 			if ship.DockingStatus == hlt.UNDOCKED {
 				cmd := sc.Act(&gameMap)
