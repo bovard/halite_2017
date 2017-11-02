@@ -63,7 +63,7 @@ func ExampleGetMidPoint() {
 }
 
 
-func ExampleCalculateDistanceTo() {
+func ExampleDistanceTo() {
 	first := Point {
 		X: 10,
 		Y: 10,
@@ -76,9 +76,9 @@ func ExampleCalculateDistanceTo() {
 		X: 10,
 		Y: 14,
 	}
-	fmt.Println(first.CalculateDistanceTo(&second))
-	fmt.Println(first.CalculateDistanceTo(&third))
-	fmt.Println(second.CalculateDistanceTo(&third))
+	fmt.Println(first.DistanceTo(&second))
+	fmt.Println(first.DistanceTo(&third))
+	fmt.Println(second.DistanceTo(&third))
 	// Output:
 	// 3
 	// 4

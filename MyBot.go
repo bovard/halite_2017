@@ -11,7 +11,7 @@ import (
 
 func main() {
 	logging := true
-	botName := "bovard"
+	botName := "current"
 
 	conn := hlt.NewConnection(botName)
 
@@ -37,7 +37,6 @@ func main() {
 		gc.AssignToPlanets()
 		commandQueue := []string{}
 
-		log.Println(-10 % 360)
 		myPlayer := gameMap.Players[gameMap.MyId]
 		myShips := myPlayer.Ships
 
@@ -47,6 +46,7 @@ func main() {
 			log.Println(sc.Id, "is assigned to planet ", sc.Planet)
 			log.Println(sc.Ship.Entity.X, sc.Ship.Entity.Y)
 			log.Println(ship.Entity.X, ship.Entity.Y)
+			log.Println(ship.Point)
 			if ship.DockingStatus == hlt.UNDOCKED {
 				cmd := sc.Act(&gameMap)
 				log.Println(cmd)

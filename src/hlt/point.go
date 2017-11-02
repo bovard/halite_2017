@@ -33,7 +33,7 @@ func (self *Point) GetMidPoint(target *Point) Point {
 	}
 }
 
-func (self *Point) CalculateDistanceTo(target *Point) float64 {
+func (self *Point) DistanceTo(target *Point) float64 {
 	// returns euclidean distance to target
 	dx := target.X - self.X
 	dy := target.Y - self.Y

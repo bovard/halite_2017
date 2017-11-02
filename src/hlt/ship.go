@@ -101,15 +101,15 @@ func (ship *Ship) Undock() string {
 
 func (ship *Ship) NavigateBasic(target *Entity) string {
 
-	maxMove := ship.Entity.Point.CalculateDistanceTo(&target.Point) - (ship.Entity.Radius + target.Radius + .1)
+	maxMove := ship.Point.DistanceTo(&target.Point) - (ship.Entity.Radius + target.Radius + .1)
 
-	angle := ship.Entity.Point.CalculateAngleTo(&target.Point)
+	angle := ship.Point.CalculateAngleTo(&target.Point)
 	speed := math.Min(maxMove, SHIP_MAX_SPEED)
 	return ship.Thrust(speed, angle)
 }
 
 func (ship *Ship) CanDock(planet *Planet) bool {
-	dist := ship.Entity.Point.CalculateDistanceTo(&planet.Entity.Point)
+	dist := ship.Point.DistanceTo(&planet.Point)
 
 	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + .01)
 }
@@ -173,7 +173,7 @@ func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 
 func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 
-	maxMove := ship.Entity.Point.CalculateDistanceTo(target) - (ship.Entity.Radius + .1)
+	maxMove := ship.Point.DistanceTo(target) - (ship.Entity.Radius + .1)
 
 	angle := ship.CalculateAngleTo(target)
 	speed := math.Min(maxMove, SHIP_MAX_SPEED)
@@ -205,8 +205,8 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 8
 
-	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Entity.Point.CalculateDistanceTo(&target.Point) - target.Radius - ship.Entity.Radius - .05)
-	baseAngle := ship.Entity.Point.CalculateAngleTo(&target.Point)
+	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point) - target.Radius - ship.Entity.Radius - .05)
+	baseAngle := ship.Point.CalculateAngleTo(&target.Point)
 
 	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
 	if !gameMap.ObstaclesInPath(&ship.Entity, startSpeed, baseAngle) {
@@ -220,7 +220,7 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
 			intermediateTargetRight := ship.Entity.AddThrust(speed, baseAngle - turn)
 			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle - turn)
 			if !obLeft && !obRight {
-				if intermediateTargetLeft.CalculateDistanceTo(&target.Point) < intermediateTargetRight.CalculateDistanceTo(&target.Point) {
+				if intermediateTargetLeft.DistanceTo(&target.Point) < intermediateTargetRight.DistanceTo(&target.Point) {
 					return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
 				} else {
 					return ship.NavigateSnail(&intermediateTargetRight, gameMap)
