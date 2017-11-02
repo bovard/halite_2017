@@ -1,22 +1,21 @@
 package strat
 
-import ( 
-  "log"
-  "../hlt"
+import (
+	"../hlt"
+	"log"
 )
 
 type ShipController struct {
-	Ship     *hlt.Ship
-	Past     [] *hlt.Ship
-	Id       int
-	Planet   int
+	Ship   *hlt.Ship
+	Past   []*hlt.Ship
+	Id     int
+	Planet int
 }
 
 func (self *ShipController) Update(ship *hlt.Ship) {
 	self.Past = append(self.Past, self.Ship)
 	self.Ship = ship
 }
-
 
 func (self *ShipController) Act(gameMap *hlt.Map) string {
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.Planet)
@@ -25,8 +24,7 @@ func (self *ShipController) Act(gameMap *hlt.Map) string {
 	if self.Planet != -1 {
 		planet := gameMap.PlanetsLookup[self.Planet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
-		log.Println("distance to enemy is ", closetEnemy.Distance, )
-		if closetEnemy / 2 < planetDist {
+		if closetEnemy/2 < planetDist {
 			self.Planet = -1
 			return self.Ship.BetterNavigate(&enemies[0], gameMap)
 		} else {

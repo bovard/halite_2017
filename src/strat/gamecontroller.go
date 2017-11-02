@@ -1,22 +1,24 @@
 package strat
 
-import ( "../hlt")
+import (
+	"../hlt"
+)
 
 type GameController struct {
-	GameMap                 *hlt.Map
-	ShipControllers         map[int]*ShipController
+	GameMap         *hlt.Map
+	ShipControllers map[int]*ShipController
 }
 
 func (self *GameController) Update(gameMap *hlt.Map) {
 	self.GameMap = gameMap
 	myPlayer := gameMap.Players[gameMap.MyId]
-	myShips  := myPlayer.Ships
+	myShips := myPlayer.Ships
 
 	for i := 0; i < len(myShips); i++ {
 		ship := myShips[i]
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
-			sc := ShipController {
+			sc := ShipController{
 				Ship:   &ship,
 				Past:   nil,
 				Id:     ship.Entity.Id,
@@ -44,23 +46,23 @@ func (self *GameController) Update(gameMap *hlt.Map) {
 }
 
 func remove(s []int, i int) []int {
-    s[len(s)-1], s[i] = s[i], s[len(s)-1]
-    return s[:len(s)-1]
+	s[len(s)-1], s[i] = s[i], s[len(s)-1]
+	return s[:len(s)-1]
 }
 
 func (self *GameController) AssignToPlanets() {
-	var free [] hlt.Planet
+	var free []hlt.Planet
 	assignments := make(map[int]int)
 
 	for _, p := range self.GameMap.Planets {
-    	assignments[p.Entity.Id] = 0
-    }
+		assignments[p.Entity.Id] = 0
+	}
 
-    for _, sc := range self.ShipControllers {
-    	if sc.Planet != -1 {
-    		assignments[sc.Planet] += 1
-    	}
-    }
+	for _, sc := range self.ShipControllers {
+		if sc.Planet != -1 {
+			assignments[sc.Planet] += 1
+		}
+	}
 
 	for _, p := range self.GameMap.Planets {
 		assigned := assignments[p.Entity.Id]
@@ -83,7 +85,7 @@ func (self *GameController) AssignToPlanets() {
 				}
 			}
 			if closest != -1 {
-    			assignments[closest] += 1
+				assignments[closest] += 1
 				sc.Planet = closest
 			}
 
