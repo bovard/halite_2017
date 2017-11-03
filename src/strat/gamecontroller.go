@@ -2,6 +2,7 @@ package strat
 
 import (
 	"../hlt"
+	"log"
 )
 
 type GameController struct {
@@ -71,13 +72,18 @@ func (self *GameController) AssignToPlanets() {
 		}
 	}
 
+	log.Println("Printing planet assignments")
+	for key, sc := range self.ShipControllers {
+		log.Println(key, " is assigned to ", sc.Planet, " with status ", sc.Ship.DockingStatus)
+	}
+	log.Println("End docking assignments")
 	for key, _ := range self.ShipControllers {
 		sc := self.ShipControllers[key]
 		if sc.Planet == -1 && sc.Ship.DockingStatus == hlt.UNDOCKED {
 			closest := -1
 			closestDist := 10000.0
 			for _, p := range free {
-				dist := sc.Ship.Entity.DistanceToCollision(&p.Entity)
+				dist := sc.Ship.DistanceToCollision(&p.Entity)
 				assigned := assignments[p.Entity.Id]
 				if dist < closestDist && assigned < p.NumDockingSpots {
 					closestDist = dist
@@ -91,4 +97,9 @@ func (self *GameController) AssignToPlanets() {
 
 		}
 	}
+	log.Println("REprinting planet assignments")
+	for key, sc := range self.ShipControllers {
+		log.Println(key, " is assigned to ", sc.Planet, " with status ", sc.Ship.DockingStatus)
+	}
+	log.Println("End reprinting docking assignments")
 }

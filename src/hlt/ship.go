@@ -170,7 +170,8 @@ func (ship *Ship) Navigate(target *Entity, gameMap GameMap) string {
 
 }
 
-func (ship *Ship) NavigateSnail(speed int, angle float64, gameMap *GameMap) string {
+func (ship *Ship) NavigateSnail(speed int, angle float64, gameMap *GameMap) Heading {
+	log.Println("NavigateSnail with speed ", speed, " and angle ", angle)
 
 	// add points along the path
 	for mag := 1; mag <= speed; mag++ {
@@ -183,10 +184,10 @@ func (ship *Ship) NavigateSnail(speed int, angle float64, gameMap *GameMap) stri
 		gameMap.Entities = append(gameMap.Entities, intermediateEntity)
 	}
 
-	return ship.Thrust(float64(speed), angle)
+	return CreateHeading(speed, angle)
 }
 
-func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) string {
+func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) Heading {
 	log.Println("betternavigation from ", ship.Point, " to ", target.Point, " with id ", target.Id)
 
 	maxTurn := (3 * math.Pi) / 2
@@ -222,5 +223,8 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) string {
 			}
 		}
 	}
-	return ""
+	return Heading{
+		Magnitude: 0,
+		Angle:     0,
+	}
 }

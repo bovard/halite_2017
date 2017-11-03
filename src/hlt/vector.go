@@ -8,6 +8,7 @@ type Vector struct {
 	X, Y float64
 }
 
+
 func (self *Vector) Dot(other *Vector) float64 {
 	return self.X*other.X + self.Y*other.Y
 }
