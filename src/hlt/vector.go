@@ -19,3 +19,24 @@ func (self *Vector) Magnitude() float64 {
 func (self *Vector) SqMagnitude() float64 {
 	return self.X*self.X + self.Y*self.Y
 }
+
+func (self *Vector) Add(other *Vector) Vector {
+	return Vector {
+		X: self.X + other.X,
+		Y: self.Y + other.Y,
+	}
+}
+
+func (self *Vector) Opposite() Vector {
+	return Vector {
+		X: -self.X,
+		Y: -self.Y,
+	}
+}
+
+func (self *Vector) Subtract(other *Vector) Vector {
+	return Vector {
+		X: self.X - other.X,
+		Y: self.Y - other.Y,
+	}
+}

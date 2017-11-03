@@ -17,6 +17,10 @@ func (self *ShipController) Update(ship *hlt.Ship) {
 	self.Ship = ship
 }
 
+func (self *ShipController) MoveToPlanet(planet *hlt.Planet, gameMap *hlt.Map) {
+
+}
+
 func (self *ShipController) Act(gameMap *hlt.Map) string {
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.Planet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
@@ -24,7 +28,7 @@ func (self *ShipController) Act(gameMap *hlt.Map) string {
 	if self.Planet != -1 {
 		planet := gameMap.PlanetsLookup[self.Planet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
-		if closetEnemy/2 < planetDist {
+		if closetEnemy/2 < planetDist || (planet.Owner > 0 && planet.Owner != gameMap.MyId) {
 			self.Planet = -1
 			return self.Ship.BetterNavigate(&enemies[0], gameMap)
 		} else {

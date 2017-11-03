@@ -73,7 +73,7 @@ func (self *GameController) AssignToPlanets() {
 
 	for key, _ := range self.ShipControllers {
 		sc := self.ShipControllers[key]
-		if sc.Planet == -1 {
+		if sc.Planet == -1 && sc.Ship.DockingStatus == hlt.UNDOCKED {
 			closest := -1
 			closestDist := 10000.0
 			for _, p := range free {
