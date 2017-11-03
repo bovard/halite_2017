@@ -18,6 +18,7 @@ const (
 
 type Ship struct {
 	Entity
+	Born            Point
 	Vel             Vector
 	NextVel         Vector
 	PlanetId        int
@@ -82,6 +83,7 @@ func IntToDockingStatus(i int) DockingStatus {
 }
 
 func (ship *Ship) Thrust(magnitude float64, angle float64) string {
+	log.Println("Thurst with mag ", magnitude, " and angle ", angle)
 	angle = RadToDeg(angle)
 	if angle < 0 {
 		angle += 360
@@ -168,16 +170,11 @@ func (ship *Ship) Navigate(target *Entity, gameMap GameMap) string {
 
 }
 
-func (ship *Ship) NavigateSnail(target *Point, gameMap *GameMap) string {
-
-	maxMove := ship.Point.DistanceTo(target) - (ship.Entity.Radius + .1)
-
-	angle := ship.AngleTo(target)
-	speed := math.Min(maxMove, SHIP_MAX_SPEED)
+func (ship *Ship) NavigateSnail(speed int, angle float64, gameMap *GameMap) string {
 
 	// add points along the path
-	for mag := 1.0; mag <= speed; mag++ {
-		intermediatePos := ship.Entity.AddThrust(mag, angle)
+	for mag := 1; mag <= speed; mag++ {
+		intermediatePos := ship.Entity.AddThrust(float64(mag), angle)
 		intermediateEntity := Entity{
 			Point:  intermediatePos,
 			Radius: ship.Entity.Radius,
@@ -185,16 +182,8 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *GameMap) string {
 		}
 		gameMap.Entities = append(gameMap.Entities, intermediateEntity)
 	}
-	// add the terminal location
-	intermediatePos := ship.Entity.AddThrust(speed, angle)
-	intermediateEntity := Entity{
-		Point:  intermediatePos,
-		Radius: ship.Entity.Radius,
-		Owner:  -1,
-	}
-	gameMap.Entities = append(gameMap.Entities, intermediateEntity)
 
-	return ship.Thrust(speed, angle)
+	return ship.Thrust(float64(speed), angle)
 }
 
 func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) string {
@@ -203,34 +192,33 @@ func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) string {
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 8
 
-	startSpeed := math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point)-target.Radius-ship.Radius-.05)
+	startSpeed := int(math.Min(SHIP_MAX_SPEED, ship.Point.DistanceTo(&target.Point)-target.Radius-ship.Radius-.05))
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := ship.Point.AngleTo(&target.Point)
 
-	intermediateTarget := ship.Entity.AddThrust(startSpeed, baseAngle)
-	if !gameMap.ObstaclesInPath(&ship.Entity, startSpeed, baseAngle) {
+	if !gameMap.ObstaclesInPath(&ship.Entity, float64(startSpeed), baseAngle) {
 		log.Println("Way is clear to planet!")
-		return ship.NavigateSnail(&intermediateTarget, gameMap)
+		return ship.NavigateSnail(startSpeed, baseAngle, gameMap)
 	}
 
-	for speed := startSpeed; speed > .25; speed /= 2 {
+	for speed := startSpeed; speed >= 1; speed -- {
 		log.Println("Trying speed, ", speed)
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
-			intermediateTargetLeft := ship.AddThrust(speed, baseAngle+turn)
-			obLeft := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle+turn)
-			intermediateTargetRight := ship.AddThrust(speed, baseAngle-turn)
-			obRight := gameMap.ObstaclesInPath(&ship.Entity, speed, baseAngle-turn)
+			intermediateTargetLeft := ship.AddThrust(float64(speed), baseAngle+turn)
+			obLeft := gameMap.ObstaclesInPath(&ship.Entity, float64(speed), baseAngle+turn)
+			intermediateTargetRight := ship.AddThrust(float64(speed), baseAngle-turn)
+			obRight := gameMap.ObstaclesInPath(&ship.Entity, float64(speed), baseAngle-turn)
 			if !obLeft && !obRight {
 				if intermediateTargetLeft.SqDistanceTo(&target.Point) < intermediateTargetRight.SqDistanceTo(&target.Point) {
-					return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
+					return ship.NavigateSnail(speed, baseAngle+turn, gameMap)
 				} else {
-					return ship.NavigateSnail(&intermediateTargetRight, gameMap)
+					return ship.NavigateSnail(speed, baseAngle-turn, gameMap)
 				}
 			} else if !obLeft {
-				return ship.NavigateSnail(&intermediateTargetLeft, gameMap)
+				return ship.NavigateSnail(speed, baseAngle+turn, gameMap)
 			} else if !obRight {
-				return ship.NavigateSnail(&intermediateTargetRight, gameMap)
+				return ship.NavigateSnail(speed, baseAngle-turn, gameMap)
 			}
 		}
 	}

@@ -60,8 +60,11 @@ func (c *Connection) UpdateMap() GameMap {
 		Height:        c.height,
 		Planets:       []Planet{},
 		Players:       [4]Player{},
+		EnemyShips:    []*Ship{},
+		MyShips:       []*Ship{},
 		Entities:      []Entity{},
 		PlanetsLookup: make(map[int]Planet),
+		ShipLookup:    make(map[int]*Ship),
 	}
 	//log.Printf("%+v\n",gameMap)
 	gameMap = ParseGameString(gameString, gameMap)

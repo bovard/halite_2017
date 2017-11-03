@@ -12,8 +12,9 @@ type GameMap struct {
 	Planets             []Planet /// preallocating for speed, assuming we cant have > 100 planets
 	Players             [4]Player
 	Entities            []Entity
-	Ships               []Ship
-	MyShips             []Ship
+	EnemyShips          []*Ship
+	MyShips             []*Ship
+	ShipLookup          map[int]*Ship
 	PlanetsLookup       map[int]Planet
 }
 
@@ -51,8 +52,13 @@ func ParseGameString(gameString string, self GameMap) GameMap {
 		tokens = tokensnew
 		self.Players[player.Id] = player
 		for j := 0; j < len(player.Ships); j++ {
-			self.Ships = append(self.Ships, player.Ships[j])
+			self.ShipLookup[player.Ships[j].Id] = &player.Ships[j]
 			self.Entities = append(self.Entities, player.Ships[j].Entity)
+			if i == self.MyId {
+				self.MyShips = append(self.MyShips, &player.Ships[j])
+			} else {
+				self.EnemyShips = append(self.EnemyShips, &player.Ships[j])
+			}
 		}
 	}
 
@@ -70,11 +76,27 @@ func ParseGameString(gameString string, self GameMap) GameMap {
 	return self
 }
 
-func (gameGameMap *GameMap) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
+func (gameMap *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
+	for _, ship := range append(gameMap.MyShips, gameMap.EnemyShips...) {
+		if oldShip, ok := lastFrame.ShipLookup[ship.Id]; ok {
+			ship.Born = oldShip.Born
+			ship.Vel = oldShip.Point.VectorTo(&ship.Point)
+		} else {
+			ship.Born = ship.Point
+			ship.Vel = Vector{ 
+				X: 0,
+				Y: 0,
+			}
+		}
+	}
+
+}
+
+func (gameMap *GameMap) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
 	for mag := 0.5; mag <= magnitude; mag += .5 {
 		intermediatePos := start.AddThrust(mag, angle)
-		for i := 0; i < len(gameGameMap.Entities); i++ {
-			entity := gameGameMap.Entities[i]
+		for i := 0; i < len(gameMap.Entities); i++ {
+			entity := gameMap.Entities[i]
 			if entity.Id == start.Id {
 				continue
 			}
@@ -86,7 +108,7 @@ func (gameGameMap *GameMap) ObstaclesInPath(start *Entity, magnitude float64, an
 	return false
 }
 
-func (gameGameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
+func (gameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
 
 	x1 := start.X
 	y1 := start.Y
@@ -97,8 +119,8 @@ func (gameGameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
 	a := dx*dx + dy*dy + 1e-8
 	crossterms := x1*x1 - x1*x2 + y1*y1 - y1*y2
 
-	for i := 0; i < len(gameGameMap.Entities); i++ {
-		entity := gameGameMap.Entities[i]
+	for i := 0; i < len(gameMap.Entities); i++ {
+		entity := gameMap.Entities[i]
 		if entity.Id == start.Id || entity.Id == end.Id {
 			continue
 		}
@@ -128,8 +150,8 @@ func (gameGameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
 	}
 	return false
 }
-func (gameGameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
-	planets := gameGameMap.Planets
+func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
+	planets := gameMap.Planets
 
 	for i := 0; i < len(planets); i++ {
 		planets[i].Distance = ship.Point.DistanceTo(&planets[i].Point)
@@ -140,11 +162,11 @@ func (gameGameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
 	return planets
 }
 
-func (gameGameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
-	entities := gameGameMap.Entities
+func (gameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
+	entities := gameMap.Entities
 	var enemies []Entity
 	for _, e := range entities {
-		if e.Owner != gameGameMap.MyId && e.Owner != -1 && e.Radius < 1 {
+		if e.Owner != gameMap.MyId && e.Owner != -1 && e.Radius < 1 {
 			enemies = append(enemies, e)
 		}
 	}

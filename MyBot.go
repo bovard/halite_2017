@@ -31,8 +31,13 @@ func main() {
 		GameMap:         &gameMap,
 		ShipControllers: make(map[int]*strat.ShipController),
 	}
+
+	var newGameMap hlt.GameMap;
 	for true {
-		gameMap = conn.UpdateMap()
+		newGameMap = conn.UpdateMap()
+		newGameMap.UpdateShipsFromHistory(&gameMap)
+		gameMap = newGameMap
+
 		gc.Update(&gameMap)
 		gc.AssignToPlanets()
 		commandQueue := []string{}
@@ -44,10 +49,11 @@ func main() {
 			ship := myShips[i]
 			sc := *gc.ShipControllers[ship.Entity.Id]
 			log.Println(sc.Id, "is assigned to planet ", sc.Planet)
-			log.Println(ship.Point)
+			log.Println("Ship is located at ",ship.Point)
+			log.Println("With Vel ",ship.Vel, " and mag ",ship.Vel.Magnitude())
 			if sc.Planet != -1 {
 				targetPlanet := gameMap.PlanetsLookup[sc.Planet]
-				log.Println("planet locatino is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
+				log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
 				rad := ship.Point.AngleTo(&targetPlanet.Point)
 				log.Println(int(360+hlt.RadToDeg(rad)) % 360)
 			}
