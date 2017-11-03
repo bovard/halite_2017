@@ -7,11 +7,13 @@ import (
 	"strings"
 )
 
-type Map struct {
+type GameMap struct {
 	MyId, Width, Height int
 	Planets             []Planet /// preallocating for speed, assuming we cant have > 100 planets
 	Players             [4]Player
 	Entities            []Entity
+	Ships               []Ship
+	MyShips             []Ship
 	PlanetsLookup       map[int]Planet
 }
 
@@ -39,7 +41,7 @@ func ParsePlayer(tokens []string) (Player, []string) {
 	return player, tokens
 }
 
-func ParseGameString(gameString string, self Map) Map {
+func ParseGameString(gameString string, self GameMap) GameMap {
 	tokens := strings.Split(gameString, " ")
 	numPlayers, _ := strconv.Atoi(tokens[0])
 	tokens = tokens[1:]
@@ -49,6 +51,7 @@ func ParseGameString(gameString string, self Map) Map {
 		tokens = tokensnew
 		self.Players[player.Id] = player
 		for j := 0; j < len(player.Ships); j++ {
+			self.Ships = append(self.Ships, player.Ships[j])
 			self.Entities = append(self.Entities, player.Ships[j].Entity)
 		}
 	}
@@ -67,11 +70,11 @@ func ParseGameString(gameString string, self Map) Map {
 	return self
 }
 
-func (gameMap *Map) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
+func (gameGameMap *GameMap) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
 	for mag := 0.5; mag <= magnitude; mag += .5 {
 		intermediatePos := start.AddThrust(mag, angle)
-		for i := 0; i < len(gameMap.Entities); i++ {
-			entity := gameMap.Entities[i]
+		for i := 0; i < len(gameGameMap.Entities); i++ {
+			entity := gameGameMap.Entities[i]
 			if entity.Id == start.Id {
 				continue
 			}
@@ -83,7 +86,7 @@ func (gameMap *Map) ObstaclesInPath(start *Entity, magnitude float64, angle floa
 	return false
 }
 
-func (gameMap Map) ObstaclesBetween(start *Entity, end *Entity) bool {
+func (gameGameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
 
 	x1 := start.X
 	y1 := start.Y
@@ -94,8 +97,8 @@ func (gameMap Map) ObstaclesBetween(start *Entity, end *Entity) bool {
 	a := dx*dx + dy*dy + 1e-8
 	crossterms := x1*x1 - x1*x2 + y1*y1 - y1*y2
 
-	for i := 0; i < len(gameMap.Entities); i++ {
-		entity := gameMap.Entities[i]
+	for i := 0; i < len(gameGameMap.Entities); i++ {
+		entity := gameGameMap.Entities[i]
 		if entity.Id == start.Id || entity.Id == end.Id {
 			continue
 		}
@@ -125,8 +128,8 @@ func (gameMap Map) ObstaclesBetween(start *Entity, end *Entity) bool {
 	}
 	return false
 }
-func (gameMap *Map) NearestPlanetsByDistance(ship *Ship) []Planet {
-	planets := gameMap.Planets
+func (gameGameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
+	planets := gameGameMap.Planets
 
 	for i := 0; i < len(planets); i++ {
 		planets[i].Distance = ship.Point.DistanceTo(&planets[i].Point)
@@ -137,11 +140,11 @@ func (gameMap *Map) NearestPlanetsByDistance(ship *Ship) []Planet {
 	return planets
 }
 
-func (gameMap Map) NearestEnemiesByDistance(ship Ship) []Entity {
-	entities := gameMap.Entities
+func (gameGameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
+	entities := gameGameMap.Entities
 	var enemies []Entity
 	for _, e := range entities {
-		if e.Owner != gameMap.MyId && e.Owner != -1 && e.Radius < 1 {
+		if e.Owner != gameGameMap.MyId && e.Owner != -1 && e.Radius < 1 {
 			enemies = append(enemies, e)
 		}
 	}

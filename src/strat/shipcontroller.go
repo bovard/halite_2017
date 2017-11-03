@@ -17,11 +17,11 @@ func (self *ShipController) Update(ship *hlt.Ship) {
 	self.Ship = ship
 }
 
-func (self *ShipController) MoveToPlanet(planet *hlt.Planet, gameMap *hlt.Map) {
+func (self *ShipController) MoveToPlanet(planet *hlt.Planet, gameMap *hlt.GameMap) {
 
 }
 
-func (self *ShipController) Act(gameMap *hlt.Map) string {
+func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.Planet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
 	closetEnemy := enemies[0].Distance

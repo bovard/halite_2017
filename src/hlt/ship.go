@@ -122,7 +122,7 @@ func (ship *Ship) WillPathCollideWithPlanet(thrust float64, angle float64, plane
 	return true
 }
 
-func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
+func (ship *Ship) Navigate(target *Entity, gameMap GameMap) string {
 
 	ob := gameMap.ObstaclesBetween(&ship.Entity, target)
 
@@ -168,7 +168,7 @@ func (ship *Ship) Navigate(target *Entity, gameMap Map) string {
 
 }
 
-func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
+func (ship *Ship) NavigateSnail(target *Point, gameMap *GameMap) string {
 
 	maxMove := ship.Point.DistanceTo(target) - (ship.Entity.Radius + .1)
 
@@ -197,7 +197,7 @@ func (ship *Ship) NavigateSnail(target *Point, gameMap *Map) string {
 	return ship.Thrust(speed, angle)
 }
 
-func (ship *Ship) BetterNavigate(target *Entity, gameMap *Map) string {
+func (ship *Ship) BetterNavigate(target *Entity, gameMap *GameMap) string {
 	log.Println("betternavigation from ", ship.Point, " to ", target.Point, " with id ", target.Id)
 
 	maxTurn := (3 * math.Pi) / 2

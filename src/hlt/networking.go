@@ -50,11 +50,11 @@ func NewConnection(botName string) Connection {
 	return conn
 }
 
-func (c *Connection) UpdateMap() Map {
+func (c *Connection) UpdateMap() GameMap {
 	log.Printf("--- NEW TURN --- \n")
 	gameString := c.getString()
 
-	gameMap := Map{
+	gameMap := GameMap{
 		MyId:          c.PlayerTag,
 		Width:         c.width,
 		Height:        c.height,

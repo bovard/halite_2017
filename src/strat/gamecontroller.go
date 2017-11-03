@@ -5,11 +5,11 @@ import (
 )
 
 type GameController struct {
-	GameMap         *hlt.Map
+	GameMap         *hlt.GameMap
 	ShipControllers map[int]*ShipController
 }
 
-func (self *GameController) Update(gameMap *hlt.Map) {
+func (self *GameController) Update(gameMap *hlt.GameMap) {
 	self.GameMap = gameMap
 	myPlayer := gameMap.Players[gameMap.MyId]
 	myShips := myPlayer.Ships
