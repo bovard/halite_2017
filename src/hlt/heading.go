@@ -17,6 +17,13 @@ func (self *Heading) ToMoveCmd(ship *Ship, message int) string {
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(self.Magnitude), strconv.Itoa(angle))
 }
 
+func (self *Heading) ToVelocity() Vector {
+	return Vector {
+		X: float64(self.Magnitude) * math.Cos(float64(self.Angle)),
+		Y: float64(self.Magnitude) * math.Sin(float64(self.Angle)),
+	}
+}
+
 func CreateHeading(magnitude int, angle float64) Heading {
 	var boundedAngle int
 	angle = RadToDeg(angle)

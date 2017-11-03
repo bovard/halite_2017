@@ -116,10 +116,14 @@ func (ship *Ship) CanDock(planet *Planet) bool {
 	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + .01)
 }
 
-func (ship *Ship) WillPathCollideWithPlanet(thrust float64, angle float64, planet *Planet) bool {
-	if thrust == 0 {
+func (ship *Ship) WillPathCollideWithPlanet(heading *Heading, planet *Planet) bool {
+	if heading.Magnitude == 0 {
 		return false
 	}
+	if ship.DistanceToCollision(&planet.Entity) > float64(heading.Magnitude) {
+		return false
+	}
+
 
 	return true
 }

@@ -35,6 +35,19 @@ func (self *Vector) Opposite() Vector {
 	}
 }
 
+func CreateVector(mag int, angle float64) {
+	return Vector {
+		X: float64(mag) * math.Cos(angle),
+		Y: float64(mag) * math.Sin(angle),
+	}
+}
+
+//func (self *Vector) ToHeading() Heading {
+	//mag := math.Sqrt(self.X * self.X + self.Y * self.Y)
+	//ang := math.Atan2(self.Y / self.X)
+	//return CreateHeading(int(mag), ang)
+//}
+
 func (self *Vector) Subtract(other *Vector) Vector {
 	return Vector {
 		X: self.X - other.X,

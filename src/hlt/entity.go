@@ -1,8 +1,6 @@
 package hlt
 
-import (
-	"math"
-)
+import ("math")
 
 type Entity struct {
 	Point
@@ -14,11 +12,7 @@ type Entity struct {
 }
 
 func (self *Entity) DistanceToCollision(target *Entity) float64 {
-	// returns euclidean distance to target
-	dx := target.Point.X - self.Point.X
-	dy := target.Point.Y - self.Point.Y
-
-	return math.Sqrt(dx*dx+dy*dy) - self.Radius - target.Radius
+	return self.Point.DistanceTo(&target.Point) - self.Radius - target.Radius
 }
 
 func (self *Entity) ClosestPointTo(target *Entity, minDistance float64) Point {
@@ -26,4 +20,22 @@ func (self *Entity) ClosestPointTo(target *Entity, minDistance float64) Point {
 	dist := self.Point.DistanceTo(&target.Point) - target.Radius - minDistance
 	angle := target.Point.AngleTo(&self.Point)
 	return target.Point.AddThrust(dist, angle)
+}
+
+func (self *Entity) WillCollideWith(target *Entity, vel *Vector) bool {
+	mag := vel.Magnitude()
+	if mag == 0 {
+		return false
+	}
+	// if the object is too far away, return false
+	if self.DistanceToCollision(target) > mag {
+		return false
+	}
+	nextP := self.Point.AddVector(vel)
+	projectedP := GetClosestPointOnLine(&self.Point, &nextP, &target.Point)
+	// if the object isn't in the right direction, return false
+	if math.Abs(self.AngleTo(&nextP) - self.AngleTo(&projectedP)) > .1 {
+		return false
+	} 	
+	return projectedP.DistanceTo(&target.Point) - self.Radius - target.Radius <= 0
 }

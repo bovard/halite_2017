@@ -1,7 +1,9 @@
 {
 	"info":	"You can put message lookups in this file for the Angle Message parser. The ones here are what I'm using, but you can replace everything.",
 	"0":	"None",
-	"1":	"Cancelled Planet Assignment",
-	"2":	"Moving Toward Planet",
-	"3":	"Moving Toward Enemy"
+	"1":	"Cancelled Planet Assignment Enemy in Min Range",
+	"2":	"Cancelled Planet Assignment Enemy Too Close",
+	"3":	"Cancelled Planet Assignment Planet Taken",
+	"4":	"Moving Toward Planet",
+	"5":	"Moving Toward Enemy"
 }

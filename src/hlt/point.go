@@ -26,6 +26,13 @@ func (self *Point) AddThrust(magnitude float64, angle float64) Point {
 	}
 }
 
+func (self *Point) AddVector(v *Vector) Point {
+	return Point {
+		X: self.X + v.X,
+		Y: self.Y + v.Y,
+	}
+}
+
 func (self *Point) GetMidPoint(target *Point) Point {
 	return Point{
 		X: (self.X + target.X) / 2,
