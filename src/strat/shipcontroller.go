@@ -177,7 +177,10 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	}
 	log.Println(heading)
 	if heading.Magnitude > 0 {
+		// TODO: figure out why these aren't the same thing!! :(
 		self.Ship.NextVel = heading.ToVelocity()
+		s := gameMap.ShipLookup[self.Ship.Id]
+		s.NextVel = heading.ToVelocity()
 	}
 	return heading.ToMoveCmd(self.Ship, int(message))
 }
