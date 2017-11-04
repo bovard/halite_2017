@@ -1,6 +1,9 @@
 package hlt
 
-import ("math")
+import (
+  "math"
+  "log"
+)
 
 type Entity struct {
 	Point
@@ -23,18 +26,22 @@ func (self *Entity) ClosestPointTo(target *Entity, minDistance float64) Point {
 }
 
 func (self *Entity) WillCollideWith(target *Entity, vel *Vector) bool {
+	log.Println("Will ", self.Id, " collide with ", target.Id)
 	mag := vel.Magnitude()
 	if mag == 0 {
+		log.Println("  NO: mag is 0, won't collide")
 		return false
 	}
 	// if the object is too far away, return false
 	if self.DistanceToCollision(target) > mag {
+		log.Println("  NO: target outside range, won't collide")
 		return false
 	}
 	nextP := self.Point.AddVector(vel)
 	projectedP := GetClosestPointOnLine(&self.Point, &nextP, &target.Point)
 	// if the object isn't in the right direction, return false
 	if math.Abs(self.AngleTo(&nextP) - self.AngleTo(&projectedP)) > .1 {
+		log.Println("  NO: target isn't in the right direction")
 		return false
 	} 	
 	return projectedP.DistanceTo(&target.Point) - self.Radius - target.Radius <= 0
