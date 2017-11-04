@@ -5,5 +5,8 @@
 	"2":	"Cancelled Planet Assignment Enemy Too Close",
 	"3":	"Cancelled Planet Assignment Planet Taken",
 	"4":	"Moving Toward Planet",
-	"5":	"Moving Toward Enemy"
+	"5":	"Moving Toward Enemy",
+	"6":	"Combat We Outnumber",
+	"7":	"Combat Tied",
+	"8":	"Combat Outnumbered",
 }

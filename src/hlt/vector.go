@@ -35,8 +35,8 @@ func (self *Vector) Opposite() Vector {
 	}
 }
 
-func CreateVector(mag int, angle float64) {
-	return Vector {
+func CreateVector(mag int, angle float64) Vector {
+	return Vector{
 		X: float64(mag) * math.Cos(angle),
 		Y: float64(mag) * math.Sin(angle),
 	}

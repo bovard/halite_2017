@@ -18,9 +18,10 @@ func (self *Heading) ToMoveCmd(ship *Ship, message int) string {
 }
 
 func (self *Heading) ToVelocity() Vector {
+	angle := DegToRad(float64(self.Angle))
 	return Vector {
-		X: float64(self.Magnitude) * math.Cos(float64(self.Angle)),
-		Y: float64(self.Magnitude) * math.Sin(float64(self.Angle)),
+		X: float64(self.Magnitude) * math.Cos(angle),
+		Y: float64(self.Magnitude) * math.Sin(angle),
 	}
 }
 
