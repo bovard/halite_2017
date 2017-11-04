@@ -62,7 +62,7 @@ func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hl
 	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
 	maxTurn := (3 * math.Pi) / 2
-	dTurn := math.Pi / 8
+	dTurn := math.Pi / 16
 
 	startSpeed := int(math.Min(hlt.SHIP_MAX_SPEED, self.Ship.Point.DistanceTo(point)-radius-self.Ship.Radius-.05))
 	log.Println("setting start speed to ", startSpeed)
@@ -130,17 +130,20 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			}
 			if (alliesInRange >= enemiesInRange) {
 				message = COMBAT_WE_OUTNUMBER
-				t := self.Ship.AddVector(&closestEnemyShip.Vel)
-				heading = self.MoveToPoint(&t, gameMap)
+				//t := self.Ship.AddVector(&closestEnemyShip.Vel)
+				//heading = self.MoveToPoint(&t, gameMap)
+				heading = self.MoveToShip(closestEnemyShip, gameMap)
 			} else if (alliesInRange + 1 == enemiesInRange ) {
 				message = COMBAT_TIED
-				t := self.Ship.AddVector(&closestEnemyShip.Vel)
-				heading = self.MoveToPoint(&t, gameMap)
+				//t := self.Ship.AddVector(&closestEnemyShip.Vel)
+				//heading = self.MoveToPoint(&t, gameMap)
+				heading = self.MoveToShip(closestEnemyShip, gameMap)
 			} else {
 				message = COMBAT_OUTNUMBERED
-				n := closestEnemyShip.Entity.Point.VectorTo(&self.Ship.Entity.Point)
-				t := self.Ship.AddVector(&n)
-				heading = self.MoveToPoint(&t, gameMap)
+				//n := closestEnemyShip.Entity.Point.VectorTo(&self.Ship.Entity.Point)
+				//t := self.Ship.AddVector(&n)
+				//heading = self.MoveToPoint(&t, gameMap)
+				heading = self.MoveToShip(closestEnemyShip, gameMap)
 			}
 		} else if closestEnemy < 2 * hlt.SHIP_MAX_SPEED {
 			self.Planet = -1
