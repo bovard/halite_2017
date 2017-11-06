@@ -32,6 +32,12 @@ func (self *ShipController) MoveToShip(ship *hlt.Ship, gameMap *hlt.GameMap) hlt
 
 func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap, target int) bool {
 	v := hlt.CreateVector(mag, angle)
+
+	targetPos := self.Ship.Point.AddVector(&v)	
+	if !gameMap.IsOnMap(&targetPos) {
+		return false
+	}
+
 	for _, p := range(gameMap.Planets) {
 		log.Println("Comparing with planet ", p.Id, " at loc ", p.Point)
 		if self.Ship.WillCollideWith(&p.Entity, &v) {
@@ -63,6 +69,12 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 
 func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap, possiblePlanetCollisions []hlt.Planet, possibleEnemyShipCollisions []*hlt.Ship, possibleAlliedShipCollisions []*hlt.Ship) bool {
 	v := hlt.CreateVector(mag, angle)
+
+	targetPos := self.Ship.Point.AddVector(&v)	
+	if !gameMap.IsOnMap(&targetPos) {
+		return false
+	}
+
 	for _, p := range(possiblePlanetCollisions) {
 		log.Println("Comparing with planet ", p.Id, " at loc ", p.Point)
 		if self.Ship.WillCollideWith(&p.Entity, &v) {

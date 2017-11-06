@@ -162,6 +162,15 @@ func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
 	return planets
 }
 
+func (self *GameMap) IsOnMap(p *Point) bool {
+	if p.X <= .5 || p.Y <= .5 {
+		return false
+	} else if p.X >= float64(self.Width) - .5 || p.Y >= float64(self.Height) - .5 {
+		return false
+	}
+	return true
+}
+
 func (gameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
 	entities := gameMap.Entities
 	var enemies []Entity
