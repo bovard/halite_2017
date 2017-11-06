@@ -10,7 +10,7 @@ type ShipController struct {
 	Ship   *hlt.Ship
 	Past   []*hlt.Ship
 	Id     int
-	Planet int
+	TargetPlanet int
 }
 
 func (self *ShipController) Update(ship *hlt.Ship) {
@@ -101,7 +101,7 @@ func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hl
 }
 
 func (self *ShipController) Act(gameMap *hlt.GameMap) string {
-	log.Println("Ship ", self.Id, " Act. Planet is ", self.Planet)
+	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
 	closestEnemy := enemies[0].Distance
 	closestEnemyShip := gameMap.ShipLookup[enemies[0].Id]
@@ -111,8 +111,8 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		Angle: 0,
 	}
 	message := NONE
-	if self.Planet != -1 {
-		planet := gameMap.PlanetsLookup[self.Planet]
+	if self.TargetPlanet != -1 {
+		planet := gameMap.PlanetsLookup[self.TargetPlanet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
 
 		if closestEnemy < hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
@@ -146,17 +146,17 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 				heading = self.MoveToShip(closestEnemyShip, gameMap)
 			}
 		} else if closestEnemy < 2 * hlt.SHIP_MAX_SPEED {
-			self.Planet = -1
+			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet, enemy in min threshold")
 			message = CANCELLED_PLANET_ASSIGNMENT_MIN
 			heading = self.MoveToShip(closestEnemyShip, gameMap)
 		} else if closestEnemy/2 < planetDist  {
-			self.Planet = -1
+			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet, enemy too close")
 			message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE
 			heading = self.MoveToShip(closestEnemyShip, gameMap)
 		} else if (planet.Owner > 0 && planet.Owner != gameMap.MyId){
-			self.Planet = -1
+			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet, planet taken")
 			message = CANCELLED_PLANET_ASSIGNMENT_PLANET_TAKEN
 			heading = self.MoveToShip(closestEnemyShip, gameMap)

@@ -23,7 +23,7 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 				Ship:   &ship,
 				Past:   nil,
 				Id:     ship.Entity.Id,
-				Planet: -1,
+				TargetPlanet: -1,
 			}
 			self.ShipControllers[ship.Entity.Id] = &sc
 		} else {
@@ -60,8 +60,8 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if sc.Planet != -1 {
-			assignments[sc.Planet] += 1
+		if sc.TargetPlanet != -1 {
+			assignments[sc.TargetPlanet] += 1
 		}
 	}
 
@@ -74,32 +74,36 @@ func (self *GameController) AssignToPlanets() {
 
 	log.Println("Printing planet assignments")
 	for key, sc := range self.ShipControllers {
-		log.Println(key, " is assigned to ", sc.Planet, " with status ", sc.Ship.DockingStatus)
+		log.Println(key, " is assigned to ", sc.TargetPlanet, " with status ", sc.Ship.DockingStatus)
 	}
 	log.Println("End docking assignments")
-	for key, _ := range self.ShipControllers {
-		sc := self.ShipControllers[key]
-		if sc.Planet == -1 && sc.Ship.DockingStatus == hlt.UNDOCKED {
-			closest := -1
-			closestDist := 10000.0
-			for _, p := range free {
-				dist := sc.Ship.DistanceToCollision(&p.Entity)
-				assigned := assignments[p.Entity.Id]
-				if dist < closestDist && assigned < p.NumDockingSpots {
-					closestDist = dist
-					closest = p.Entity.Id
-				}
-			}
-			if closest != -1 {
-				assignments[closest] += 1
-				sc.Planet = closest
-			}
 
+	
+	for _, sc := range self.ShipControllers {
+		log.Println("Looking to make assignment for ship ", sc.Id)
+		if sc.TargetPlanet != -1 {
+			log.Println("already assigned to ", sc.TargetPlanet)
+			continue
+		}
+		closest := -1
+		closestDist := 10000.0
+		for _, p := range free {
+			dist := sc.Ship.DistanceToCollision(&p.Entity)
+			assigned := assignments[p.Entity.Id]
+			log.Println("Planet ", p.Id, " is ", dist, " away and has ", assigned, " of ", p.NumDockingSpots, " used")
+			if dist < closestDist && assigned < p.NumDockingSpots {
+				closestDist = dist
+				closest = p.Id
+			}
+		}
+		if closest != -1 {
+			assignments[closest] += 1
+			sc.TargetPlanet = closest
 		}
 	}
 	log.Println("REprinting planet assignments")
 	for key, sc := range self.ShipControllers {
-		log.Println(key, " is assigned to ", sc.Planet, " with status ", sc.Ship.DockingStatus)
+		log.Println(key, " is assigned to ", sc.TargetPlanet, " with status ", sc.Ship.DockingStatus)
 	}
 	log.Println("End reprinting docking assignments")
 }
