@@ -9,5 +9,8 @@
 	"6":	"Combat We Outnumber",
 	"7":	"Combat Tied",
 	"8":	"Combat Outnumbered",
-	"9":	"Combat Suicide to Kill Production"
+	"9":	"Combat Suicide to Kill Production",
+	"10":   "Combat OUtnumbered and far from home",
+	"11":   "Combat Suicide due to lower health",
+	"12":   "Combat Tied Suicide gain value"
 }
