@@ -272,7 +272,10 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 		if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id)) {
 			message = COMBAT_TIED_SUICIDE_TO_GAIN_VALUE
 			heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
-		} else {
+		} else if closestDockedEnemyShipDistance < 2 * hlt.SHIP_MAX_SPEED && enemiesInThreatRange == 0 {
+			message = COMBAT_TIED_GOING_TO_HURT_PRODUCTION
+			heading = self.MoveToShip(&closestDockedEnemyShip, gameMap)
+		}else {
 			message = COMBAT_TIED
 			heading = self.MoveToShip(closestEnemyShip, gameMap)
 		}
