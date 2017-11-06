@@ -58,6 +58,17 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	return true
 }
 
+func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.GameMap) hlt.Heading {
+	log.Println("UnsafeMoveToPoint from ", self.Ship.Point, " to ", point)
+
+	startSpeed := int(hlt.SHIP_MAX_SPEED)
+	log.Println("setting start speed to ", startSpeed)
+	baseAngle := self.Ship.Point.AngleTo(point)
+
+	log.Println("Way is clear to target!")
+	return hlt.CreateHeading(startSpeed, baseAngle)
+}
+
 func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
 	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
@@ -100,6 +111,69 @@ func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hl
 	}
 }
 
+
+func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (ChlMessage, hlt.Heading) {
+	enemiesInCombatRange := 0
+	enemiesDockedInCombatRange := 0
+	enemiesInThreatRange := 0
+	alliesInCombatRange := 0
+	alliesDockedInCombatRange := 0
+	alliesInThreatRange := 0
+	closestEnemyShip := gameMap.ShipLookup[enemies[0].Id]
+	var message ChlMessage
+	var heading hlt.Heading
+
+	for _, s := range(append(gameMap.MyShips, gameMap.EnemyShips...)) {
+		dist := self.Ship.DistanceToCollision(&s.Entity)
+		if dist <= hlt.SHIP_MAX_ATTACK_RANGE {
+			if s.DockingStatus == hlt.UNDOCKED {
+				if s.Owner == gameMap.MyId {
+					alliesInCombatRange++
+				} else {
+					enemiesInCombatRange++
+				}
+			} else {
+				if s.Owner == gameMap.MyId {
+					alliesDockedInCombatRange++
+				} else {
+					enemiesDockedInCombatRange++
+				}
+			}
+		} else if dist <= hlt.SHIP_MAX_SPEED + hlt.SHIP_MAX_ATTACK_RANGE {
+			if s.DockingStatus == hlt.UNDOCKED {
+				if s.Owner == gameMap.MyId {
+					alliesInThreatRange++
+				} else {
+					enemiesInThreatRange++
+				}
+			}
+		}
+	} 
+	if (self.Ship.Health <= hlt.SHIP_MAX_HEALTH - hlt.SHIP_DAMAGE && closestEnemyShip.DockingStatus == hlt.DOCKED) {
+		message = COMBAT_KILL_PRODUCTION
+		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
+	} else if (alliesInCombatRange >= enemiesInCombatRange) {
+		message = COMBAT_WE_OUTNUMBER
+		//t := self.Ship.AddVector(&closestEnemyShip.Vel)
+		//heading = self.MoveToPoint(&t, gameMap)
+		heading = self.MoveToShip(closestEnemyShip, gameMap)
+	} else if (alliesInCombatRange + 1 == enemiesInCombatRange ) {
+		message = COMBAT_TIED
+		//t := self.Ship.AddVector(&closestEnemyShip.Vel)
+		//heading = self.MoveToPoint(&t, gameMap)
+		heading = self.MoveToShip(closestEnemyShip, gameMap)
+	} else {
+		message = COMBAT_OUTNUMBERED
+		//n := closestEnemyShip.Entity.Point.VectorTo(&self.Ship.Entity.Point)
+		//t := self.Ship.AddVector(&n)
+		//heading = self.MoveToPoint(&t, gameMap)
+		heading = self.MoveToShip(closestEnemyShip, gameMap)
+	}
+
+	return message, heading
+
+}
+
 func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
@@ -116,35 +190,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
 
 		if closestEnemy < hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
-			enemiesInRange := 0
-			alliesInRange := 0
-			for _, s := range(append(gameMap.MyShips, gameMap.EnemyShips...)) {
-				if self.Ship.DistanceTo(&s.Entity.Point) <= hlt.SHIP_MAX_ATTACK_RANGE {
-					if self.Ship.Owner == gameMap.MyId {
-						alliesInRange++
-					} else {
-						enemiesInRange++
-					}
-
-				}
-			}
-			if (alliesInRange >= enemiesInRange) {
-				message = COMBAT_WE_OUTNUMBER
-				//t := self.Ship.AddVector(&closestEnemyShip.Vel)
-				//heading = self.MoveToPoint(&t, gameMap)
-				heading = self.MoveToShip(closestEnemyShip, gameMap)
-			} else if (alliesInRange + 1 == enemiesInRange ) {
-				message = COMBAT_TIED
-				//t := self.Ship.AddVector(&closestEnemyShip.Vel)
-				//heading = self.MoveToPoint(&t, gameMap)
-				heading = self.MoveToShip(closestEnemyShip, gameMap)
-			} else {
-				message = COMBAT_OUTNUMBERED
-				//n := closestEnemyShip.Entity.Point.VectorTo(&self.Ship.Entity.Point)
-				//t := self.Ship.AddVector(&n)
-				//heading = self.MoveToPoint(&t, gameMap)
-				heading = self.MoveToShip(closestEnemyShip, gameMap)
-			}
+			message, heading = self.combat(gameMap, enemies)
 		} else if closestEnemy < 2 * hlt.SHIP_MAX_SPEED {
 			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet, enemy in min threshold")
