@@ -56,13 +56,13 @@ func main() {
 				targetPlanet := gameMap.PlanetsLookup[sc.TargetPlanet]
 				log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
 				rad := ship.Point.AngleTo(&targetPlanet.Point)
-				log.Println("angle to planet is ", int(360+hlt.RadToDeg(rad)) % 360)
+				log.Println("angle to planet is ", int(360+hlt.RadToDeg(rad))%360)
 			}
 			if ship.DockingStatus == hlt.UNDOCKED {
 				cmd := sc.Act(&gameMap)
 				log.Println(cmd)
 				commandQueue = append(commandQueue, cmd)
-			} 
+			}
 		}
 		conn.SubmitCommands(commandQueue)
 		gameturn++
