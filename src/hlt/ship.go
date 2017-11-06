@@ -102,8 +102,8 @@ func (ship *Ship) Undock() string {
 
 
 func (ship *Ship) CanDock(planet *Planet) bool {
-	dist := ship.Point.DistanceTo(&planet.Point)
+	dist := ship.DistanceToCollision(&planet.Entity)
 
-	return dist <= (planet.Radius + SHIP_DOCKING_RADIUS + .01)
+	return dist <= SHIP_DOCKING_RADIUS
 }
 

@@ -115,7 +115,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		planet := gameMap.PlanetsLookup[self.Planet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
 
-		if closestEnemy < hlt.SHIP_MAX_ATTACK_RANGE {
+		if closestEnemy < hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
 			enemiesInRange := 0
 			alliesInRange := 0
 			for _, s := range(append(gameMap.MyShips, gameMap.EnemyShips...)) {
