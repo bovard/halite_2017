@@ -182,6 +182,17 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 	closestEnemyShipDistance := enemies[0].Distance
 	closestEnemyShip := gameMap.ShipLookup[enemies[0].Id]
 	closestEnemyShipDir := self.Ship.AngleTo(&closestEnemyShip.Point)
+	var closestDockedEnemyShip hlt.Ship 
+	closestDockedEnemyShipDistance := 100000000.0
+	for _, e := range(enemies) {
+		s := gameMap.ShipLookup[enemies[0].Id]
+		if s.DockingStatus != hlt.UNDOCKED {
+			closestDockedEnemyShip = *s
+			closestDockedEnemyShipDistance = e.Distance
+			break;
+		}
+	}
+	closestDockedEnemyShipDir := self.Ship.AngleTo(&closestEnemyShip.Point)
 	planets := gameMap.NearestPlanetsByDistance(self.Ship)
 	var message ChlMessage
 	var heading hlt.Heading
@@ -234,7 +245,7 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 			}
 		}
 	} 
-	if ((self.Ship.Health <= hlt.SHIP_MAX_HEALTH - hlt.SHIP_DAMAGE || enemiesInThreatRange > alliesInThreatRange || enemiesInCombatRange > alliesInCombatRange) && closestEnemyShip.DockingStatus == hlt.DOCKED && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id) ) {
+	if ((self.Ship.Health <= hlt.SHIP_MAX_HEALTH || enemiesInCombatRange > alliesInCombatRange) && closestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(closestDockedEnemyShipDistance + .5), closestDockedEnemyShipDir, gameMap, closestDockedEnemyShip.Id) ) {
 		message = COMBAT_KILL_PRODUCTION
 		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
 	}  else if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id) ) {
@@ -315,8 +326,12 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			}
 		}
 	} else {
-		message = MOVING_TOWARD_ENEMY
-		heading = self.MoveToShip(closestEnemyShip, gameMap)
+		if closestEnemy < hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
+			message, heading = self.combat(gameMap, enemies)
+		} else {
+			message = MOVING_TOWARD_ENEMY
+			heading = self.MoveToShip(closestEnemyShip, gameMap)
+		}
 	}
 	log.Println(heading)
 	if heading.Magnitude > 0 {
