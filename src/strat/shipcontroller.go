@@ -102,6 +102,9 @@ func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.Gam
 func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
 	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
+	// TODO: why can't we do this with pointers :(
+	// when using *hlt.Planet it always defaults to the last element
+	// i guess since slices are already pointers?
 	possiblePlanetCollisions := []hlt.Planet{}
 	for _, p := range(gameMap.Planets) {
 		log.Println(p.Id, self.Ship.DistanceToCollision(&p.Entity), " ?<= ", hlt.SHIP_MAX_SPEED)

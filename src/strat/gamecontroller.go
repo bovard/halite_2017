@@ -107,3 +107,35 @@ func (self *GameController) AssignToPlanets() {
 	}
 	log.Println("End reprinting docking assignments")
 }
+
+
+func (self *GameController) Act() []string {
+	return self.NormalTurn()
+}
+
+func (self *GameController) NormalTurn() []string{
+	commandQueue := []string{}
+
+	myPlayer := self.GameMap.Players[self.GameMap.MyId]
+	myShips := myPlayer.Ships
+
+	for i := 0; i < len(myShips); i++ {
+		ship := myShips[i]
+		sc := self.ShipControllers[ship.Entity.Id]
+		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
+		log.Println("Ship is located at ", ship.Point)
+		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
+		if sc.TargetPlanet != -1 {
+			targetPlanet := self.GameMap.PlanetsLookup[sc.TargetPlanet]
+			log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
+			rad := ship.Point.AngleTo(&targetPlanet.Point)
+			log.Println("angle to planet is ", int(360+hlt.RadToDeg(rad))%360)
+		}
+		if ship.DockingStatus == hlt.UNDOCKED {
+			cmd := sc.Act(self.GameMap)
+			log.Println(cmd)
+			commandQueue = append(commandQueue, cmd)
+		}
+	}
+	return commandQueue
+}
