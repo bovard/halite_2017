@@ -257,7 +257,7 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 			}
 		}
 	} 
-	if ((self.Ship.Health <= hlt.SHIP_MAX_HEALTH || enemiesInCombatRange > alliesInCombatRange) && closestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(closestDockedEnemyShipDistance + .5), closestDockedEnemyShipDir, gameMap, closestDockedEnemyShip.Id) ) {
+	if ((self.Ship.Health < hlt.SHIP_MAX_HEALTH || enemiesInCombatRange > alliesInCombatRange) && closestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(closestDockedEnemyShipDistance + .5), closestDockedEnemyShipDir, gameMap, closestDockedEnemyShip.Id) ) {
 		message = COMBAT_KILL_PRODUCTION
 		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
 	}  else if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id) ) {
