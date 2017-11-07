@@ -284,3 +284,106 @@ func ExampleShipsDyanmicWillCollideWith() {
 	// false
 	// false
 }
+
+
+func ExampleShipsFromGame45158615WillCollideWith() {
+	p1 := Point{
+		X: 71.43,
+		Y: 96.68,
+	}
+	e1 := Entity{
+		Point:  p1,
+		Radius: 0.5,
+		Id: 1,
+	}
+	p2 := Point{
+		X: 72.07,
+		Y: 103.23,
+	}
+	e2 := Entity{
+		Point:  p2,
+		Radius: .5,
+		Id: 2,
+	}
+	h1 := Heading {
+		Magnitude: 7,
+		Angle: 93.0,
+	}
+	v1 := h1.ToVelocity()
+	v2 := Vector {
+		X: 0,
+		Y: 0,
+	}
+	v1mv2 := v1.Subtract(&v2)
+
+	fmt.Println(e1.WillCollideWith(&e2, &v1mv2))
+	// Output:
+	// true
+}
+
+
+func ExampleShipsFromGame3071260526WillCollideWith() {
+	p1 := Point{
+		X: 31.29,
+		Y: 127.96,
+	}
+	e1 := Entity{
+		Point:  p1,
+		Radius: 0.5,
+		Id: 1,
+	}
+	p2 := Point{
+		X: 30.63,
+		Y: 130.40,
+	}
+	e2 := Entity{
+		Point:  p2,
+		Radius: .5,
+		Id: 2,
+	}
+	h1 := Heading {
+		Magnitude: 4,
+		Angle: 128.0,
+	}
+	v1 := h1.ToVelocity()
+	v2 := Vector {
+		X: 0,
+		Y: 0,
+	}
+	v1mv2 := v1.Subtract(&v2)
+
+	fmt.Println(e1.WillCollideWith(&e2, &v1mv2))
+	// Output:
+	// true
+}
+
+
+func ExampleShipsFromGame1756470586WillCollideWith() {
+	p1 := Point{
+		X: 113.23,
+		Y: 62.95,
+	}
+	e1 := Entity{
+		Point:  p1,
+		Radius: 0.5,
+		Id: 1,
+	}
+	p2 := Point{
+		X: 111.76,
+		Y: 71.76,
+	}
+	e2 := Entity{
+		Point:  p2,
+		Radius: 5.33,
+		Id: 2,
+	}
+	h1 := Heading {
+		Magnitude: 7,
+		Angle: 59.0,
+	}
+	v1 := h1.ToVelocity()
+
+	fmt.Println(e1.WillCollideWith(&e2, &v1))
+	// Output:
+	// true
+}

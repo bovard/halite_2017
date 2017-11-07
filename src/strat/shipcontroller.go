@@ -101,10 +101,13 @@ func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap
 	return true
 }
 
-func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.GameMap) hlt.Heading {
+func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.GameMap, maxSpeed bool) hlt.Heading {
 	log.Println("UnsafeMoveToPoint from ", self.Ship.Point, " to ", point)
 
 	startSpeed := int(math.Min(hlt.SHIP_MAX_SPEED, self.Ship.Point.DistanceTo(point)))
+	if maxSpeed {
+		startSpeed = int(hlt.SHIP_MAX_SPEED)
+	}
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := self.Ship.Point.AngleTo(point)
 
@@ -259,10 +262,13 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 	} 
 	if ((self.Ship.Health < hlt.SHIP_MAX_HEALTH || enemiesInCombatRange > alliesInCombatRange) && closestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(closestDockedEnemyShipDistance + .5), closestDockedEnemyShipDir, gameMap, closestDockedEnemyShip.Id) ) {
 		message = COMBAT_KILL_PRODUCTION
-		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
-	}  else if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id) ) {
+		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap, true)
+	} else if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && closestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(closestDockedEnemyShipDistance + .5), closestDockedEnemyShipDir, gameMap, closestDockedEnemyShip.Id) ) {
+		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
+		heading = self.UnsafeMoveToPoint(&closestDockedEnemyShip.Point, gameMap, true)
+	} else if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id) ) {
 		message = COMBAT_SUICIDE_DUE_TO_LOWER_HEALTH
-		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
+		heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap, false)
 	} else if (alliesInCombatRange >= enemiesInCombatRange) {
 		message = COMBAT_WE_OUTNUMBER
 		//t := self.Ship.AddVector(&closestEnemyShip.Vel)
@@ -271,8 +277,8 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 	} else if (alliesInCombatRange + 1 == enemiesInCombatRange ) {
 		if (closestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(closestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(closestEnemyShipDistance + .5), closestEnemyShipDir, gameMap, closestEnemyShip.Id)) {
 			message = COMBAT_TIED_SUICIDE_TO_GAIN_VALUE
-			heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap)
-		} else if closestDockedEnemyShipDistance < 2 * hlt.SHIP_MAX_SPEED && enemiesInThreatRange == 0 {
+			heading = self.UnsafeMoveToPoint(&closestEnemyShip.Point, gameMap, false)
+		} else if closestDockedEnemyShipDistance < 2 * hlt.SHIP_MAX_SPEED && enemiesInThreatRange == 0 && enemiesInCombatRange == 1 {
 			message = COMBAT_TIED_GOING_TO_HURT_PRODUCTION
 			heading = self.MoveToShip(&closestDockedEnemyShip, gameMap)
 		}else {
@@ -351,7 +357,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			log.Println("Cancelling assigned planet, planet taken")
 			message = CANCELLED_PLANET_ASSIGNMENT_PLANET_TAKEN
 			heading = self.MoveToShip(closestEnemyShip, gameMap)
-		} else if (enemyClosestPlanetDist < hlt.SHIP_MAX_SPEED + hlt.SHIP_MAX_ATTACK_RANGE) {
+		} else if (enemyClosestPlanetDist < hlt.SHIP_MAX_SPEED) {
 			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet, enemy planet too close")
 			message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE_TO_ENEMEY_PLANET
