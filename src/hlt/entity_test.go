@@ -387,3 +387,35 @@ func ExampleShipsFromGame1756470586WillCollideWith() {
 	// Output:
 	// true
 }
+
+
+
+func ExampleShipsFromGame2370134WillCollideWith() {
+	p1 := Point{
+		X: 184.64,
+		Y: 63.06,
+	}
+	e1 := Entity{
+		Point:  p1,
+		Radius: 0.5,
+		Id: 1,
+	}
+	p2 := Point{
+		X: 183.99,
+		Y: 50.34,
+	}
+	e2 := Entity{
+		Point:  p2,
+		Radius: 11.39,
+		Id: 2,
+	}
+	h1 := Heading {
+		Magnitude: 7,
+		Angle: 336.0,
+	}
+	v1 := h1.ToVelocity()
+
+	fmt.Println(e1.WillCollideWith(&e2, &v1))
+	// Output:
+	// true
+}
