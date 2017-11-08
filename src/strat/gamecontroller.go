@@ -139,6 +139,10 @@ func (self *GameController) GameStart() []string{
 		sc.TargetPlanet = targetPlanet
 	}
 
+	if targetPlanet == -1 {
+		self.AssignToPlanets()
+	}
+
 	return self.NormalTurn()
 }
 
