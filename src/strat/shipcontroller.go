@@ -61,13 +61,13 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 		return false
 	}
 
-	for _, p := range(gameMap.Planets) {
+	for _, p := range(self.Info.PossiblePlanetCollisions) {
 		log.Println("Comparing with planet ", p.Id, " at loc ", p.Point)
 		if self.Ship.WillCollideWith(&p.Entity, &v) {
 			return false
 		}
 	}
-	for _, s := range(gameMap.EnemyShips) {
+	for _, s := range(self.Info.PossibleEnemyShipCollisions) {
 		log.Println("Comparing with enemyShip ", s.Id, " at loc ", s.Point)
 		if s.Id == target {
 			continue
@@ -77,7 +77,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 		}
 	}
 	var nv hlt.Vector
-	for _, s := range(gameMap.MyShips) {
+	for _, s := range(self.Info.PossibleAlliedShipCollisions) {
 		log.Println("Comparing with friendly ship ", s.Id, " at loc ", s.Point, " with Vel ", s.NextVel)
 		if self.Ship.Id == s.Id {
 			continue
