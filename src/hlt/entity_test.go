@@ -422,6 +422,7 @@ func ExampleShipsFromGame2370134WillCollideWith() {
 
 
 func ExampleShipsFromGame154201WillCollideWith() {
+	// seed: 961841357
 	p1 := Point{
 		X: 133.9925,
 		Y: 74.7725,
