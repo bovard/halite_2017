@@ -1,7 +1,6 @@
 package hlt
 
 import (
-	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -92,64 +91,7 @@ func (gameMap *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
 
 }
 
-func (gameMap *GameMap) ObstaclesInPath(start *Entity, magnitude float64, angle float64) bool {
-	for mag := 0.5; mag <= magnitude; mag += .5 {
-		intermediatePos := start.AddThrust(mag, angle)
-		for i := 0; i < len(gameMap.Entities); i++ {
-			entity := gameMap.Entities[i]
-			if entity.Id == start.Id {
-				continue
-			}
-			if intermediatePos.DistanceTo(&entity.Point) < start.Radius+entity.Radius+.1 {
-				return true
-			}
-		}
-	}
-	return false
-}
 
-func (gameMap GameMap) ObstaclesBetween(start *Entity, end *Entity) bool {
-
-	x1 := start.X
-	y1 := start.Y
-	x2 := end.X
-	y2 := end.Y
-	dx := x2 - x1
-	dy := y2 - y1
-	a := dx*dx + dy*dy + 1e-8
-	crossterms := x1*x1 - x1*x2 + y1*y1 - y1*y2
-
-	for i := 0; i < len(gameMap.Entities); i++ {
-		entity := gameMap.Entities[i]
-		if entity.Id == start.Id || entity.Id == end.Id {
-			continue
-		}
-
-		x0 := entity.X
-		y0 := entity.Y
-
-		closest_distance := end.Point.DistanceTo(&entity.Point)
-		if closest_distance < entity.Radius+1 {
-			return true
-		}
-
-		b := -2 * (crossterms + x0*dx + y0*dy)
-		t := -b / (2 * a)
-
-		if t <= 0 || t >= 1 {
-			continue
-		}
-
-		closest_x := start.X + dx*t
-		closest_y := start.Y + dy*t
-		closest_distance = math.Sqrt(math.Pow(closest_x-x0, 2) * +math.Pow(closest_y-y0, 2))
-
-		if closest_distance <= entity.Radius+start.Radius+1 {
-			return true
-		}
-	}
-	return false
-}
 func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
 	planets := gameMap.Planets
 
@@ -169,6 +111,21 @@ func (self *GameMap) IsOnMap(p *Point) bool {
 		return false
 	}
 	return true
+}
+
+func (gameMap GameMap) NearestShipsByDistance(ship *Ship, ships []*Ship) []Ship {
+	var enemies []Ship
+	for _, e := range ships {
+		enemies = append(enemies, *e)
+	}
+
+	for i := 0; i < len(enemies); i++ {
+		enemies[i].Distance = ship.Entity.DistanceToCollision(&enemies[i].Entity)
+	}
+
+	sort.Sort(byDistShip(enemies))
+
+	return enemies
 }
 
 func (gameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
@@ -194,6 +151,12 @@ type byDistEntity []Entity
 func (a byDistEntity) Len() int           { return len(a) }
 func (a byDistEntity) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byDistEntity) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
+
+type byDistShip []Ship
+
+func (a byDistShip) Len() int           { return len(a) }
+func (a byDistShip) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDistShip) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
 
 type byDist []Planet
 

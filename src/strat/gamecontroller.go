@@ -134,12 +134,12 @@ func (self *GameController) GameStart() []string{
 		}
 	}
 
-	for _, sc := range self.ShipControllers {
-		sc.Mission = MISSION_START_GAME
-		sc.TargetPlanet = targetPlanet
-	}
-
-	if targetPlanet == -1 {
+	if targetPlanet != -1 {
+		for _, sc := range self.ShipControllers {
+			sc.Mission = MISSION_FOUND_PLANET
+			sc.TargetPlanet = targetPlanet
+		}
+	} else {
 		self.AssignToPlanets()
 	}
 

@@ -11,7 +11,7 @@ type Mission int
 
 const (
 	MISSION_NORMAL Mission = iota
-	MISSION_START_GAME
+	MISSION_FOUND_PLANET
 )
 
 type ShipController struct {
@@ -362,7 +362,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	message := NONE
 	if closestEnemy <= hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
 			message, heading = self.combat(gameMap, enemies)
-	} else if self.Mission == MISSION_START_GAME {
+	} else if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetsLookup[self.TargetPlanet]
 		log.Println("Continuing with assigned planet")
 		if self.Ship.CanDock(&planet) {

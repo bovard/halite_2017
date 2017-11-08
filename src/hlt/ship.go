@@ -26,6 +26,7 @@ type Ship struct {
 	DockingStatus   DockingStatus
 	DockingProgress float64
 	WeaponCooldown  float64
+	Distance        float64
 }
 
 func ParseShip(playerId int, tokens []string) (Ship, []string) {
