@@ -15,6 +15,7 @@ const (
 	UNDOCKING
 )
 
+
 type Ship struct {
 	Entity
 	Born            Point

@@ -24,6 +24,7 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 				Past:   nil,
 				Id:     ship.Entity.Id,
 				TargetPlanet: -1,
+				Mission: MISSION_NORMAL,
 			}
 			self.ShipControllers[ship.Entity.Id] = &sc
 		} else {
@@ -109,7 +110,35 @@ func (self *GameController) AssignToPlanets() {
 }
 
 
-func (self *GameController) Act() []string {
+
+func (self *GameController) Act(turn int) []string {
+	if (turn == 1) {
+		return self.GameStart()
+	} else {
+		self.AssignToPlanets()
+		return self.NormalTurn()
+	}
+}
+
+func (self *GameController) GameStart() []string{
+	centerShip := self.GameMap.Players[self.GameMap.MyId].Ships[1]
+	nearestPlanets := self.GameMap.NearestPlanetsByDistance(&centerShip)
+	nearestPlanetDist := nearestPlanets[0].Distance
+	targetPlanet := -1
+	for _, p := range(nearestPlanets) {
+		if int(nearestPlanetDist/7.0) > int(p.Distance/7.0) + 4 {
+			continue
+		}
+		if targetPlanet == -1 && p.NumDockingSpots >= 3 {
+			targetPlanet = p.Id
+		}
+	}
+
+	for _, sc := range self.ShipControllers {
+		sc.Mission = MISSION_START_GAME
+		sc.TargetPlanet = targetPlanet
+	}
+
 	return self.NormalTurn()
 }
 

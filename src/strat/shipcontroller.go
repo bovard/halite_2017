@@ -6,11 +6,20 @@ import (
 	"math"
 )
 
+
+type Mission int
+
+const (
+	MISSION_NORMAL Mission = iota
+	MISSION_START_GAME
+)
+
 type ShipController struct {
 	Ship   *hlt.Ship
 	Past   []*hlt.Ship
 	Id     int
 	TargetPlanet int
+	Mission Mission
 }
 
 func (self *ShipController) Update(ship *hlt.Ship) {
@@ -19,16 +28,29 @@ func (self *ShipController) Update(ship *hlt.Ship) {
 }
 
 func (self *ShipController) MoveToPlanet(planet *hlt.Planet, gameMap *hlt.GameMap) hlt.Heading {
-	return self.moveTo(&planet.Point, planet.Radius, gameMap)
+	return self.moveTo(genericPointTest, &planet.Point, planet.Radius, gameMap)
 }
 
 func (self *ShipController) MoveToPoint(point *hlt.Point, gameMap *hlt.GameMap) hlt.Heading {
-	return self.moveTo(point, 0.0, gameMap)
+	return self.moveTo(genericPointTest, point, 0.0, gameMap)
 }
 
 func (self *ShipController) MoveToShip(ship *hlt.Ship, gameMap *hlt.GameMap) hlt.Heading {
-	return self.moveTo(&ship.Point, ship.Radius, gameMap)
+	return self.moveTo(genericPointTest, &ship.Point, ship.Radius, gameMap)
 }
+
+func (self * ShipController) MoveToDockingRange(planet *hlt.Planet, gameMap *hlt.GameMap) hlt.Heading {
+	return self.moveTo(inDockingRangePointTest, &planet.Point, planet.Radius, gameMap)
+}
+
+func genericPointTest(point *hlt.Point, radius float64, newPoint hlt.Point) bool {
+	return true;
+}
+
+func inDockingRangePointTest(planetPoint *hlt.Point, planetRadius float64, pointToEval hlt.Point) bool {
+	return planetPoint.DistanceTo(&pointToEval) <= hlt.SHIP_DOCKING_RADIUS + hlt.SHIP_RADIUS + planetRadius
+}
+
 
 func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap, target int) bool {
 	v := hlt.CreateVector(mag, angle)
@@ -114,7 +136,7 @@ func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.Gam
 	return hlt.CreateHeading(startSpeed, baseAngle)
 }
 
-func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
+func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point) bool, point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
 	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
 	// TODO: why can't we do this with pointers :(
@@ -154,7 +176,7 @@ func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hl
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := self.Ship.Point.AngleTo(point)
 
-	if self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions) {
+	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions) {
 		log.Println("Way is clear to target!")
 		return hlt.CreateHeading(startSpeed, baseAngle)
 	}
@@ -164,18 +186,18 @@ func (self *ShipController) moveTo(point *hlt.Point, radius float64, gameMap *hl
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
 			intermediateTargetLeft := self.Ship.AddThrust(float64(speed), baseAngle+turn)
-			obLeft := !self.BetterHeadingIsClear(speed, baseAngle+turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
+			canGoLeft := pointTest(point, radius, intermediateTargetLeft) && self.BetterHeadingIsClear(speed, baseAngle+turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
 			intermediateTargetRight := self.Ship.AddThrust(float64(speed), baseAngle-turn)
-			obRight := !self.BetterHeadingIsClear(speed, baseAngle-turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
-			if !obLeft && !obRight {
+			canGoRight := pointTest(point, radius, intermediateTargetRight) && self.BetterHeadingIsClear(speed, baseAngle-turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
+			if canGoLeft && canGoRight {
 				if intermediateTargetLeft.SqDistanceTo(point) < intermediateTargetRight.SqDistanceTo(point) {
 					return hlt.CreateHeading(speed, baseAngle+turn)
 				} else {
 					return hlt.CreateHeading(speed, baseAngle-turn)
 				}
-			} else if !obLeft {
+			} else if canGoLeft {
 				return hlt.CreateHeading(speed, baseAngle+turn)
-			} else if !obRight {
+			} else if canGoRight {
 				return hlt.CreateHeading(speed, baseAngle-turn)
 			}
 		}
@@ -304,6 +326,8 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, enemies []hlt.Entity) (
 }
 
 func (self *ShipController) Act(gameMap *hlt.GameMap) string {
+
+
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
 	enemies := gameMap.NearestEnemiesByDistance(*self.Ship)
 	closestEnemy := enemies[0].Distance
@@ -338,6 +362,23 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	message := NONE
 	if closestEnemy <= hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
 			message, heading = self.combat(gameMap, enemies)
+	} else if self.Mission == MISSION_START_GAME {
+		planet := gameMap.PlanetsLookup[self.TargetPlanet]
+		log.Println("Continuing with assigned planet")
+		if self.Ship.CanDock(&planet) {
+			log.Println("We can dock!")
+			return self.Ship.Dock(&planet)
+		}  
+		h := self.MoveToDockingRange(&planet, gameMap)
+		if h.Magnitude > 0 {
+			log.Println("can move to docking range of", planet.Id)
+			message = MOVE_TO_DOCKING
+			heading = h
+		} else {
+			log.Println("moving toward planet", planet.Id)
+			message = MOVING_TOWARD_PLANET
+			heading = self.MoveToPlanet(&planet, gameMap)
+		}	
 	} else if self.TargetPlanet != -1 {
 		planet := gameMap.PlanetsLookup[self.TargetPlanet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
@@ -367,6 +408,12 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			if self.Ship.CanDock(&planet) {
 				log.Println("We can dock!")
 				return self.Ship.Dock(&planet)
+			}  
+			h := self.MoveToDockingRange(&planet, gameMap)
+			if h.Magnitude > 0 {
+				log.Println("can move to docking range of", planet.Id)
+				message = MOVE_TO_DOCKING
+				heading = h
 			} else {
 				log.Println("moving toward planet", planet.Id)
 				message = MOVING_TOWARD_PLANET

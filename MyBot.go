@@ -42,7 +42,7 @@ func main() {
 		gc.Update(&gameMap)
 		gc.AssignToPlanets()
 
-		commandQueue := gc.Act()
+		commandQueue := gc.Act(gameturn)
 		
 		conn.SubmitCommands(commandQueue)
 		gameturn++

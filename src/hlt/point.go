@@ -33,6 +33,7 @@ func (self *Point) AddVector(v *Vector) Point {
 	}
 }
 
+
 func (self *Point) GetMidPoint(target *Point) Point {
 	return Point{
 		X: (self.X + target.X) / 2,
