@@ -90,7 +90,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	return true
 }
 
-func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap, possiblePlanetCollisions []hlt.Planet, possibleEnemyShipCollisions []*hlt.Ship, possibleAlliedShipCollisions []*hlt.Ship) bool {
+func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap) bool {
 	v := hlt.CreateVector(mag, angle)
 
 	targetPos := self.Ship.Point.AddVector(&v)	
@@ -98,20 +98,20 @@ func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap
 		return false
 	}
 
-	for _, p := range(possiblePlanetCollisions) {
+	for _, p := range(self.Info.PossiblePlanetCollisions) {
 		log.Println("Comparing with planet ", p.Id, " at loc ", p.Point)
 		if self.Ship.WillCollideWith(&p.Entity, &v) {
 			return false
 		}
 	}
-	for _, s := range(possibleEnemyShipCollisions) {
+	for _, s := range(self.Info.PossibleEnemyShipCollisions) {
 		log.Println("Comparing with enemyShip ", s.Id, " at loc ", s.Point)
 		if self.Ship.WillCollideWith(&s.Entity, &v) {
 			return false
 		}
 	}
 	var nv hlt.Vector
-	for _, s := range(possibleAlliedShipCollisions) {
+	for _, s := range(self.Info.PossibleAlliedShipCollisions) {
 		log.Println("Comparing with friendly ship ", s.Id, " at loc ", s.Point, " with Vel ", s.NextVel)
 		if self.Ship.Id == s.Id {
 			continue
@@ -140,36 +140,6 @@ func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.Gam
 func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point) bool, point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
 	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
-	// TODO: why can't we do this with pointers :(
-	// when using *hlt.Planet it always defaults to the last element
-	// i guess since slices are already pointers?
-	possiblePlanetCollisions := []hlt.Planet{}
-	for _, p := range(gameMap.Planets) {
-		log.Println(p.Id, self.Ship.DistanceToCollision(&p.Entity), " ?<= ", hlt.SHIP_MAX_SPEED)
-		if self.Ship.DistanceToCollision(&p.Entity) <= hlt.SHIP_MAX_SPEED {
-			possiblePlanetCollisions = append(possiblePlanetCollisions, p)
-		}
-	}
-	log.Println(len(possiblePlanetCollisions))
-	for _, p := range(possiblePlanetCollisions) {
-		log.Println(p.Id)
-	}
-
-	possibleEnemyShipCollisions := []*hlt.Ship{}
-	for _, s := range(gameMap.EnemyShips) {
-		if self.Ship.DistanceToCollision(&s.Entity) <= 2 * hlt.SHIP_MAX_SPEED {
-			possibleEnemyShipCollisions = append(possibleEnemyShipCollisions, s)
-		}
-	}
-
-	possibleAlliedShipCollisions := []*hlt.Ship{}
-	for _, s := range(gameMap.MyShips) {
-		if self.Ship.DistanceToCollision(&s.Entity) <= 2 * hlt.SHIP_MAX_SPEED {
-			possibleAlliedShipCollisions = append(possibleAlliedShipCollisions, s)
-		}
-	}
-
-
 	maxTurn := (3 * math.Pi) / 2
 	dTurn := math.Pi / 16
 
@@ -177,7 +147,7 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := self.Ship.Point.AngleTo(point)
 
-	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions) {
+	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap) {
 		log.Println("Way is clear to target!")
 		return hlt.CreateHeading(startSpeed, baseAngle)
 	}
@@ -187,9 +157,9 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
 			intermediateTargetLeft := self.Ship.AddThrust(float64(speed), baseAngle+turn)
-			canGoLeft := pointTest(point, radius, intermediateTargetLeft) && self.BetterHeadingIsClear(speed, baseAngle+turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
+			canGoLeft := pointTest(point, radius, intermediateTargetLeft) && self.BetterHeadingIsClear(speed, baseAngle+turn, gameMap)
 			intermediateTargetRight := self.Ship.AddThrust(float64(speed), baseAngle-turn)
-			canGoRight := pointTest(point, radius, intermediateTargetRight) && self.BetterHeadingIsClear(speed, baseAngle-turn, gameMap, possiblePlanetCollisions, possibleEnemyShipCollisions, possibleAlliedShipCollisions)
+			canGoRight := pointTest(point, radius, intermediateTargetRight) && self.BetterHeadingIsClear(speed, baseAngle-turn, gameMap)
 			if canGoLeft && canGoRight {
 				if intermediateTargetLeft.SqDistanceTo(point) < intermediateTargetRight.SqDistanceTo(point) {
 					return hlt.CreateHeading(speed, baseAngle+turn)
