@@ -179,8 +179,29 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 	}
 }
 
-
 func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+	var message ChlMessage
+	var heading hlt.Heading
+
+	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance + .5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
+
+	if canKillSuicideOnProduction && self.Ship.Health <= 2.0 * hlt.SHIP_DAMAGE * (float64(self.Info.EnemiesInCombatRange) + float64(self.Info.EnemiesInThreatRange))  {
+		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
+		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemyShip.Point, gameMap, true)
+	} else if self.Info.EnemiesInCombatRange != 0 && self.Info.EnemiesInActiveThreatRange > 0 && self.Info.ClosestAlliedShipDistance < 14 {
+		p := self.Info.ClosestAlliedShip.AddVector(&self.Info.ClosestAlliedShip.NextVel)
+		message = MOVING_TO_ALLY
+		heading = self.MoveToPoint(&p, gameMap)
+	} else {
+		message = MOVING_TOWARD_ENEMY
+		heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
+	}
+
+	return message, heading
+}
+
+
+func (self *ShipController) combatOld(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
 	var message ChlMessage
 	var heading hlt.Heading
 
@@ -238,8 +259,8 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		Angle: 0,
 	}
 	message := NONE
-	if self.Info.ClosestEnemyShipDistance <= hlt.SHIP_MAX_ATTACK_RANGE - 1.0 {
-			message, heading = self.combat(gameMap)
+	if self.Info.EnemiesInCombatRange > 0 || self.Info.EnemiesInThreatRange > 0 || self.Info.EnemiesInActiveThreatRange > 0  {
+		message, heading = self.combat(gameMap)
 	} else if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetsLookup[self.TargetPlanet]
 		log.Println("Continuing with assigned planet")

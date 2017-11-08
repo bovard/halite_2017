@@ -44,5 +44,8 @@ func (self *Entity) WillCollideWith(target *Entity, vel *Vector) bool {
 		log.Println("  NO: target isn't in the right direction")
 		return false
 	} 	
-	return projectedP.DistanceTo(&target.Point) - self.Radius - target.Radius <= 0
+	log.Println("Target Point", target.Point, "is projected to ", projectedP, "with radii", self.Radius, target.Radius)
+	d := projectedP.DistanceTo(&target.Point) - self.Radius - target.Radius
+	log.Println("distance between points is", d, "wil collide? ", d <= 0.02)
+	return d <= 0.02
 }

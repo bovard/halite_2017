@@ -7,7 +7,7 @@ import (
 type ShipTurnInfo struct {
 	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions []*hlt.Ship
 	PossiblePlanetCollisions []hlt.Planet
-	EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange int
+	EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange, AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange int
 	ClosestDockedEnemyShipDistance, ClosestDockedEnemyShipDir, ClosestEnemyShipDistance, ClosestEnemyShipDir, ClosestAlliedShipDistance, ClosestAlliedShipDir float64
 	ClosestDockedEnemyShip, ClosestEnemyShip, ClosestAlliedShip *hlt.Ship
 	PlanetsByDist []hlt.Planet
@@ -44,9 +44,11 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 	enemiesInCombatRange := 0
 	enemiesDockedInCombatRange := 0
 	enemiesInThreatRange := 0
+	enemiesInActiveThreatRange := 0
 	alliesInCombatRange := 0
 	alliesDockedInCombatRange := 0
 	alliesInThreatRange := 0
+	alliesInActiveThreatRange := 0
 	closestAlliedShipDistance := allies[0].Distance
 	closestAlliedShip := gameMap.ShipLookup[allies[0].Id]
 	closestAlliedShipDir := ship.AngleTo(&closestAlliedShip.Point)
@@ -114,6 +116,14 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 					enemiesInThreatRange++
 				}
 			}
+		} else if dist <= 2 *hlt.SHIP_MAX_SPEED + hlt.SHIP_MAX_ATTACK_RANGE {
+			if s.DockingStatus == hlt.UNDOCKED {
+				if s.Owner == gameMap.MyId {
+					alliesInActiveThreatRange++
+				} else {
+					enemiesInActiveThreatRange++
+				}
+			}
 		}
 	} 
 
@@ -124,9 +134,11 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 		EnemiesInCombatRange: enemiesInCombatRange, 
 		EnemiesDockedInCombatRange: enemiesDockedInCombatRange, 
 		EnemiesInThreatRange: enemiesInThreatRange, 
+		EnemiesInActiveThreatRange: enemiesInActiveThreatRange,
 		AlliesInCombatRange: alliesInCombatRange, 
 		AlliesDockedInCombatRange: alliesDockedInCombatRange, 
 		AlliesInThreatRange: alliesInThreatRange,
+		AlliesInActiveThreatRange: alliesInActiveThreatRange,
 		ClosestEnemyShipDistance: closestEnemyShipDistance,
 		ClosestDockedEnemyShipDistance: closestDockedEnemyShipDistance,
 		ClosestEnemyShipDir: closestEnemyShipDir,
