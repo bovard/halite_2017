@@ -5,6 +5,7 @@ import (
 	"./src/strat"
 	"fmt"
 	"log"
+	"time"
 	"os"
 	"strconv"
 )
@@ -35,6 +36,7 @@ func main() {
 	var newGameMap hlt.GameMap
 	for true {
 		log.Println("Game Turn: ", gameturn)
+		start := time.Now()
 		newGameMap = conn.UpdateMap()
 		newGameMap.UpdateShipsFromHistory(&gameMap)
 		gameMap = newGameMap
@@ -45,5 +47,7 @@ func main() {
 		
 		conn.SubmitCommands(commandQueue)
 		gameturn++
+		t := time.Now()
+		log.Println("this turn took", t.Sub(start))
 	}
 }

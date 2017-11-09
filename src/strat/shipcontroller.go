@@ -137,22 +137,13 @@ func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.Gam
 	return hlt.CreateHeading(startSpeed, baseAngle)
 }
 
-func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point) bool, point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
-	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
 
-	maxTurn := (3 * math.Pi) / 2
-	dTurn := math.Pi / 16
-
+func (self *ShipController) moveToLoop(pointTest func(*hlt.Point, float64, hlt.Point) bool, point *hlt.Point, radius float64, gameMap *hlt.GameMap, maxTurn float64, minSpeed int) hlt.Heading {
 	startSpeed := int(math.Min(hlt.SHIP_MAX_SPEED, self.Ship.Point.DistanceTo(point)-radius-self.Ship.Radius-.05))
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := self.Ship.Point.AngleTo(point)
-
-	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap) {
-		log.Println("Way is clear to target!")
-		return hlt.CreateHeading(startSpeed, baseAngle)
-	}
-
-	for speed := startSpeed; speed >= 1; speed -- {
+	dTurn := math.Pi / 16
+	for speed := startSpeed; speed >= minSpeed; speed-- {
 		log.Println("Trying speed, ", speed)
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
@@ -172,11 +163,36 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 				return hlt.CreateHeading(speed, baseAngle-turn)
 			}
 		}
-	}
+	}	
+
 	return hlt.Heading {
 		Magnitude: 0,
 		Angle: 0,
 	}
+}
+
+
+func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point) bool, point *hlt.Point, radius float64, gameMap *hlt.GameMap) hlt.Heading {
+	log.Println("moveTo from ", self.Ship.Point, " to ", point, " with radius ", radius)
+
+	firstTurn := math.Pi / 2 
+	maxTurn := (3 * math.Pi) / 2
+
+	startSpeed := int(math.Min(hlt.SHIP_MAX_SPEED, self.Ship.Point.DistanceTo(point)-radius-self.Ship.Radius-.05))
+	log.Println("setting start speed to ", startSpeed)
+	baseAngle := self.Ship.Point.AngleTo(point)
+
+	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap) {
+		log.Println("Way is clear to target!")
+		return hlt.CreateHeading(startSpeed, baseAngle)
+	}
+
+	heading := self.moveToLoop(pointTest, point, radius, gameMap, firstTurn, int(math.Max(1, float64(startSpeed) - 1)))
+
+	if (heading.Magnitude == 0) {
+		heading = self.moveToLoop(pointTest, point, radius, gameMap, maxTurn, 1)
+	}
+	return heading 
 }
 
 func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
