@@ -42,6 +42,14 @@ func (self *Vector) RescaleToMag(mag int) Vector {
 	}
 }
 
+func (self *Vector) RescaleToMagFloat(mag float64) Vector {
+	scaler := mag / self.Magnitude()
+	return Vector{
+		X: scaler * self.X,
+		Y: scaler * self.Y,
+	}
+}
+
 func CreateVector(mag int, angle float64) Vector {
 	return Vector{
 		X: float64(mag) * math.Cos(angle),

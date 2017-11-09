@@ -118,7 +118,7 @@ func (self *GameController) AssignToPlanets() {
 		if closest != -1 {
 			assignments[closest] += 1
 			sc.TargetPlanet = closest
-			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader > 2 {
+			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader != 0 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
 		}
