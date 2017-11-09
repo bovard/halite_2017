@@ -31,6 +31,7 @@ func main() {
 	gc := strat.GameController{
 		GameMap:         &gameMap,
 		ShipControllers: make(map[int]*strat.ShipController),
+		ShipNumIdx: 0,
 	}
 
 	var newGameMap hlt.GameMap

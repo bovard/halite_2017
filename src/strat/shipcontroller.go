@@ -21,6 +21,7 @@ type ShipController struct {
 	TargetPlanet int
 	Mission Mission
 	Info ShipTurnInfo
+	ShipNum int
 }
 
 func (self *ShipController) Update(ship *hlt.Ship) {
@@ -201,10 +202,10 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 
 	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance + .5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
 
-	if canKillSuicideOnProduction && self.Ship.Health <= 2.0 * hlt.SHIP_DAMAGE * (float64(self.Info.EnemiesInCombatRange) + float64(self.Info.EnemiesInThreatRange))  {
+	if canKillSuicideOnProduction && self.Ship.Health <= 2.0 * hlt.SHIP_DAMAGE * (float64(self.Info.EnemiesInCombatRange) + float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE * float64(self.Info.AlliesInCombatRange + 1)  {
 		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
 		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemyShip.Point, gameMap, true)
-	} else if self.Info.EnemiesInCombatRange != 0 && self.Info.EnemiesInActiveThreatRange > 0 && self.Info.ClosestAlliedShipDistance < 14 {
+	} else if self.Info.EnemiesInCombatRange != 0 && (self.Info.EnemiesInThreatRange + self.Info.EnemiesInActiveThreatRange) > 0 && self.Info.ClosestAlliedShipDistance < 100 {
 		p := self.Info.ClosestAlliedShip.AddVector(&self.Info.ClosestAlliedShip.NextVel)
 		message = MOVING_TO_ALLY
 		heading = self.MoveToPoint(&p, gameMap)

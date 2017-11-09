@@ -8,6 +8,7 @@ import (
 type GameController struct {
 	GameMap         *hlt.GameMap
 	ShipControllers map[int]*ShipController
+	ShipNumIdx      int
 }
 
 func (self *GameController) Update(gameMap *hlt.GameMap) {
@@ -25,7 +26,9 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 				Id:     ship.Entity.Id,
 				TargetPlanet: -1,
 				Mission: MISSION_NORMAL,
+				ShipNum: self.ShipNumIdx,
 			}
+			self.ShipNumIdx++
 			self.ShipControllers[ship.Entity.Id] = &sc
 		} else {
 			sc := self.ShipControllers[ship.Entity.Id]
@@ -100,9 +103,12 @@ func (self *GameController) AssignToPlanets() {
 		if closest != -1 {
 			assignments[closest] += 1
 			sc.TargetPlanet = closest
+			if sc.ShipNum % 15 == 0 {
+				sc.Mission = MISSION_FOUND_PLANET
+			}
 		}
 	}
-	log.Println("REprinting planet assignments")
+	log.Println("Reprinting planet assignments")
 	for key, sc := range self.ShipControllers {
 		log.Println(key, " is assigned to ", sc.TargetPlanet, " with status ", sc.Ship.DockingStatus)
 	}
