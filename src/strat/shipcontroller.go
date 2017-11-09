@@ -36,7 +36,8 @@ func (self *ShipController) Update(ship *hlt.Ship) {
 }
 
 func (self *ShipController) MoveToPlanet(planet *hlt.Planet, gameMap *hlt.GameMap) hlt.Heading {
-	return self.moveTo(genericPointTest, &planet.Point, planet.Radius, gameMap)
+	closestDockingPoint := self.Ship.ClosestPointTo(&planet.Entity, hlt.SHIP_DOCKING_RADIUS)
+	return self.moveTo(genericPointTest, &closestDockingPoint, 0, gameMap)
 }
 
 func (self *ShipController) MoveToPoint(point *hlt.Point, gameMap *hlt.GameMap) hlt.Heading {
@@ -60,7 +61,7 @@ func inDockingRangePointTest(planetPoint *hlt.Point, planetRadius float64, point
 }
 
 func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap, target int) bool {
-	v := hlt.CreateVector(mag, angle)
+	v := hlt.CreateRoundedVector(mag, angle)
 
 	targetPos := self.Ship.Point.AddVector(&v)
 	if !gameMap.IsOnMap(&targetPos) {
@@ -96,39 +97,6 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	return true
 }
 
-func (self *ShipController) BetterHeadingIsClear(mag int, angle float64, gameMap *hlt.GameMap) bool {
-	v := hlt.CreateVector(mag, angle)
-
-	targetPos := self.Ship.Point.AddVector(&v)
-	if !gameMap.IsOnMap(&targetPos) {
-		return false
-	}
-
-	for _, p := range self.Info.PossiblePlanetCollisions {
-		log.Println("Comparing with planet ", p.Id, " at loc ", p.Point)
-		if self.Ship.WillCollideWith(&p.Entity, &v) {
-			return false
-		}
-	}
-	for _, s := range self.Info.PossibleEnemyShipCollisions {
-		log.Println("Comparing with enemyShip ", s.Id, " at loc ", s.Point)
-		if self.Ship.WillCollideWith(&s.Entity, &v) {
-			return false
-		}
-	}
-	var nv hlt.Vector
-	for _, s := range self.Info.PossibleAlliedShipCollisions {
-		log.Println("Comparing with friendly ship ", s.Id, " at loc ", s.Point, " with Vel ", s.NextVel)
-		if self.Ship.Id == s.Id {
-			continue
-		}
-		nv = v.Subtract(&s.NextVel)
-		if self.Ship.WillCollideWith(&s.Entity, &nv) {
-			return false
-		}
-	}
-	return true
-}
 
 func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.GameMap, maxSpeed bool) hlt.Heading {
 	log.Println("UnsafeMoveToPoint from ", self.Ship.Point, " to ", point)
@@ -153,9 +121,9 @@ func (self *ShipController) moveToLoop(pointTest func(*hlt.Point, float64, hlt.P
 		for turn := dTurn; turn <= maxTurn; turn += dTurn {
 			log.Println("Trying turn, ", turn)
 			intermediateTargetLeft := self.Ship.AddThrust(float64(speed), baseAngle+turn)
-			canGoLeft := pointTest(point, radius, intermediateTargetLeft) && self.BetterHeadingIsClear(speed, baseAngle+turn, gameMap)
+			canGoLeft := pointTest(point, radius, intermediateTargetLeft) && self.HeadingIsClear(speed, baseAngle+turn, gameMap, -1)
 			intermediateTargetRight := self.Ship.AddThrust(float64(speed), baseAngle-turn)
-			canGoRight := pointTest(point, radius, intermediateTargetRight) && self.BetterHeadingIsClear(speed, baseAngle-turn, gameMap)
+			canGoRight := pointTest(point, radius, intermediateTargetRight) && self.HeadingIsClear(speed, baseAngle-turn, gameMap, -1)
 			if canGoLeft && canGoRight {
 				if intermediateTargetLeft.SqDistanceTo(point) < intermediateTargetRight.SqDistanceTo(point) {
 					return hlt.CreateHeading(speed, baseAngle+turn)
@@ -186,7 +154,7 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 	log.Println("setting start speed to ", startSpeed)
 	baseAngle := self.Ship.Point.AngleTo(point)
 
-	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.BetterHeadingIsClear(startSpeed, baseAngle, gameMap) {
+	if pointTest(point, radius, self.Ship.AddThrust(float64(startSpeed), baseAngle)) && self.HeadingIsClear(startSpeed, baseAngle, gameMap, -1) {
 		log.Println("Way is clear to target!")
 		return hlt.CreateHeading(startSpeed, baseAngle)
 	}
@@ -205,7 +173,7 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 
 	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance+.5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
 
-	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE*float64(self.Info.AlliesInCombatRange+1) {
+	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE*math.Max(float64(self.Info.AlliesInCombatRange), 1) {
 		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
 		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemyShip.Point, gameMap, true)
 	} else if self.Info.EnemiesInCombatRange != 0 && (self.Info.EnemiesInThreatRange+self.Info.EnemiesInActiveThreatRange) > 0 && self.Info.ClosestAlliedShipDistance < 100 {

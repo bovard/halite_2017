@@ -49,6 +49,11 @@ func CreateVector(mag int, angle float64) Vector {
 	}
 }
 
+func CreateRoundedVector(mag int, angle float64) Vector {
+	h := CreateHeading(mag, angle)
+	return h.ToVelocity()
+}
+
 //func (self *Vector) ToHeading() Heading {
 //mag := math.Sqrt(self.X * self.X + self.Y * self.Y)
 //ang := math.Atan2(self.Y / self.X)

@@ -2,7 +2,6 @@ package hlt
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strconv"
 )
@@ -33,9 +32,7 @@ func CreateHeading(magnitude int, angle float64) Heading {
 	} else {
 		boundedAngle = int(math.Ceil(angle - .5))
 	}
-	log.Println("angle is ", angle, " and boundedAngle is ", boundedAngle)
 	boundedAngle = ((boundedAngle % 360) + 360) % 360
-	log.Println("angle is ", angle, " and boundedAngle is ", boundedAngle)
 	return Heading{
 		Magnitude: magnitude,
 		Angle:     boundedAngle,

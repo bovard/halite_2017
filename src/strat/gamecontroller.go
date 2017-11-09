@@ -135,19 +135,23 @@ func (self *GameController) Act(turn int) []string {
 }
 
 func (self *GameController) GameStart() []string {
-	centerShip := self.GameMap.Players[self.GameMap.MyId].Ships[1]
-	nearestPlanets := self.GameMap.NearestPlanetsByDistance(&centerShip)
-	nearestPlanetDist := nearestPlanets[0].Distance
+	bestTargetDist := 1000000.0
 	targetPlanet := -1
-	for _, p := range nearestPlanets {
-		if int(nearestPlanetDist/7.0) > int(p.Distance/7.0)+4 {
-			continue
-		}
-		if targetPlanet == -1 && p.NumDockingSpots >= 3 {
-			targetPlanet = p.Id
+	for i := 0; i < 3; i++ {
+		ship := self.GameMap.Players[self.GameMap.MyId].Ships[i]
+		nearestPlanets := self.GameMap.NearestPlanetsByDistance(&ship)
+		for _, p := range nearestPlanets {
+			if int(nearestPlanets[0].Distance/7.0) > int(p.Distance/7.0)+4 {
+				continue
+			}
+			if targetPlanet == -1 && p.NumDockingSpots >= 3 {
+				if p.Distance < bestTargetDist {
+					bestTargetDist = p.Distance
+					targetPlanet = p.Id
+				}
+			}
 		}
 	}
-
 	if targetPlanet != -1 {
 		for _, sc := range self.ShipControllers {
 			sc.Mission = MISSION_FOUND_PLANET
