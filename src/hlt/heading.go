@@ -24,6 +24,10 @@ func (self *Heading) ToVelocity() Vector {
 	}
 }
 
+func (self *Heading) GetAngleInRads() float64 {
+	return DegToRad(float64(self.Angle))
+}
+
 func CreateHeading(magnitude int, angle float64) Heading {
 	var boundedAngle int
 	angle = RadToDeg(angle)

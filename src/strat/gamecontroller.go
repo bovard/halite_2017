@@ -13,6 +13,18 @@ type GameController struct {
 	Info            GameTurnInfo
 }
 
+func (self *GameController) UpdateShips(newGameMap *hlt.GameMap) {
+	for _, s := range(self.GameMap.ShipLookup) {
+		_, contains := newGameMap.ShipLookup[s.Id]
+		if contains {
+			newS := newGameMap.ShipLookup[s.Id]
+			newS.Born = s.Born
+			newS.Vel = s.Point.VectorTo(&newS.Point)
+			newS.LastPos = s.Point
+		}
+	}
+}
+
 func (self *GameController) Update(gameMap *hlt.GameMap) {
 	self.GameMap = gameMap
 	myPlayer := gameMap.Players[gameMap.MyId]
@@ -118,14 +130,14 @@ func (self *GameController) AssignToPlanets() {
 	log.Println("End reprinting docking assignments")
 }
 
-func (self *GameController) UpdateShipInfos() {
+func (self *GameController) UpdateShipTurnInfos() {
 	for _, sc := range self.ShipControllers {
 		sc.UpdateInfo(self.GameMap)
 	}
 }
 
 func (self *GameController) Act(turn int) []string {
-	self.UpdateShipInfos()
+	self.UpdateShipTurnInfos()
 	if turn == 1 {
 		return self.GameStart()
 	} else {
@@ -167,9 +179,12 @@ func (self *GameController) GameStart() []string {
 func (self *GameController) GetSCsInOrder() []*ShipController {
 	scs := []*ShipController{}
 	for _, sc := range self.ShipControllers {
-		if sc.TargetPlanet != -1 {
+		if sc.TargetPlanet != -1  {
 			p := self.GameMap.PlanetsLookup[sc.TargetPlanet]
 			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
+			if sc.Info.ClosestEnemyShipDistance * 2 < sc.Distance {
+				sc.Distance = sc.Info.ClosestEnemyShipDistance
+			}
 		} else {
 			sc.Distance = sc.Info.ClosestEnemyShipDistance
 		}

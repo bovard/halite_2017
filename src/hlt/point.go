@@ -33,6 +33,11 @@ func (self *Point) AddVector(v *Vector) Point {
 	}
 }
 
+func (self *Point) AddHeading(h *Heading) Point {
+	v := h.ToVelocity()
+	return self.AddVector(&v)
+}
+
 func (self *Point) GetMidPoint(target *Point) Point {
 	return Point{
 		X: (self.X + target.X) / 2,
