@@ -1,1 +1,1 @@
-go fmt MyBot.go
+gofmt -l -s -w .

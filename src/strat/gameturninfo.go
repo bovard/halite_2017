@@ -6,17 +6,16 @@ import (
 
 type GameTurnInfo struct {
 	ShipCountDeltaToLeader int
-	MyShipCount int
-	MaxOpponentShipCount int
+	MyShipCount            int
+	MaxOpponentShipCount   int
 }
-
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 	myId := gameMap.MyId
 	myShipCount := len(gameMap.Players[myId].Ships)
 
 	maxOpponentCount := 0
-	for idx, _ := range(gameMap.Players) {
+	for idx := range gameMap.Players {
 		if idx == myId {
 			continue
 		} else if len(gameMap.Players[idx].Ships) > maxOpponentCount {
@@ -25,9 +24,9 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 
 	}
 
-	return GameTurnInfo {
+	return GameTurnInfo{
 		ShipCountDeltaToLeader: myShipCount - maxOpponentCount,
-		MyShipCount: myShipCount,
-		MaxOpponentShipCount: maxOpponentCount,
+		MyShipCount:            myShipCount,
+		MaxOpponentShipCount:   maxOpponentCount,
 	}
 }

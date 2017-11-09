@@ -3,7 +3,7 @@ package strat
 type ChlMessage int
 
 const (
-	NONE  ChlMessage = iota
+	NONE ChlMessage = iota
 	CANCELLED_PLANET_ASSIGNMENT_MIN
 	CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE
 	CANCELLED_PLANET_ASSIGNMENT_PLANET_TAKEN

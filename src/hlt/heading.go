@@ -1,8 +1,8 @@
 package hlt
 
 import (
-    "log"
 	"fmt"
+	"log"
 	"math"
 	"strconv"
 )
@@ -19,7 +19,7 @@ func (self *Heading) ToMoveCmd(ship *Ship, message int) string {
 
 func (self *Heading) ToVelocity() Vector {
 	angle := DegToRad(float64(self.Angle))
-	return Vector {
+	return Vector{
 		X: float64(self.Magnitude) * math.Cos(angle),
 		Y: float64(self.Magnitude) * math.Sin(angle),
 	}
@@ -36,8 +36,8 @@ func CreateHeading(magnitude int, angle float64) Heading {
 	log.Println("angle is ", angle, " and boundedAngle is ", boundedAngle)
 	boundedAngle = ((boundedAngle % 360) + 360) % 360
 	log.Println("angle is ", angle, " and boundedAngle is ", boundedAngle)
-	return Heading {
+	return Heading{
 		Magnitude: magnitude,
-		Angle: boundedAngle,
+		Angle:     boundedAngle,
 	}
 }

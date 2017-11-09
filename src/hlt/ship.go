@@ -15,7 +15,6 @@ const (
 	UNDOCKING
 )
 
-
 type Ship struct {
 	Entity
 	Born            Point
@@ -103,10 +102,8 @@ func (ship *Ship) Undock() string {
 	return fmt.Sprintf("u %s %s", strconv.Itoa(ship.Id))
 }
 
-
 func (ship *Ship) CanDock(planet *Planet) bool {
 	dist := ship.DistanceToCollision(&planet.Entity)
 
 	return dist <= SHIP_DOCKING_RADIUS
 }
-

@@ -5,9 +5,9 @@ import (
 	"./src/strat"
 	"fmt"
 	"log"
-	"time"
 	"os"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	gc := strat.GameController{
 		GameMap:         &gameMap,
 		ShipControllers: make(map[int]*strat.ShipController),
-		ShipNumIdx: 0,
+		ShipNumIdx:      0,
 	}
 
 	var newGameMap hlt.GameMap
@@ -45,7 +45,7 @@ func main() {
 		gc.Update(&gameMap)
 
 		commandQueue := gc.Act(gameturn)
-		
+
 		conn.SubmitCommands(commandQueue)
 		gameturn++
 		t := time.Now()

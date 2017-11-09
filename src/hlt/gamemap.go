@@ -82,7 +82,7 @@ func (gameMap *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
 			ship.Vel = oldShip.Point.VectorTo(&ship.Point)
 		} else {
 			ship.Born = ship.Point
-			ship.Vel = Vector{ 
+			ship.Vel = Vector{
 				X: 0,
 				Y: 0,
 			}
@@ -90,7 +90,6 @@ func (gameMap *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
 	}
 
 }
-
 
 func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
 	planets := gameMap.Planets
@@ -107,7 +106,7 @@ func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
 func (self *GameMap) IsOnMap(p *Point) bool {
 	if p.X <= .5 || p.Y <= .5 {
 		return false
-	} else if p.X >= float64(self.Width) - .5 || p.Y >= float64(self.Height) - .5 {
+	} else if p.X >= float64(self.Width)-.5 || p.Y >= float64(self.Height)-.5 {
 		return false
 	}
 	return true

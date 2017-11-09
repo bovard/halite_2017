@@ -25,12 +25,12 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
 			sc := ShipController{
-				Ship:   &ship,
-				Past:   nil,
-				Id:     ship.Entity.Id,
+				Ship:         &ship,
+				Past:         nil,
+				Id:           ship.Entity.Id,
 				TargetPlanet: -1,
-				Mission: MISSION_NORMAL,
-				ShipNum: self.ShipNumIdx,
+				Mission:      MISSION_NORMAL,
+				ShipNum:      self.ShipNumIdx,
 			}
 			self.ShipNumIdx++
 			self.ShipControllers[ship.Entity.Id] = &sc
@@ -86,7 +86,6 @@ func (self *GameController) AssignToPlanets() {
 	}
 	log.Println("End docking assignments")
 
-	
 	for _, sc := range self.ShipControllers {
 		log.Println("Looking to make assignment for ship ", sc.Id)
 		if sc.TargetPlanet != -1 {
@@ -107,7 +106,7 @@ func (self *GameController) AssignToPlanets() {
 		if closest != -1 {
 			assignments[closest] += 1
 			sc.TargetPlanet = closest
-			if sc.ShipNum % 15 == 0 && self.Info.ShipCountDeltaToLeader > 2 {
+			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader > 2 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
 		}
@@ -120,14 +119,14 @@ func (self *GameController) AssignToPlanets() {
 }
 
 func (self *GameController) UpdateShipInfos() {
-	for _, sc := range(self.ShipControllers) {
+	for _, sc := range self.ShipControllers {
 		sc.UpdateInfo(self.GameMap)
 	}
 }
 
 func (self *GameController) Act(turn int) []string {
 	self.UpdateShipInfos()
-	if (turn == 1) {
+	if turn == 1 {
 		return self.GameStart()
 	} else {
 		self.AssignToPlanets()
@@ -135,13 +134,13 @@ func (self *GameController) Act(turn int) []string {
 	}
 }
 
-func (self *GameController) GameStart() []string{
+func (self *GameController) GameStart() []string {
 	centerShip := self.GameMap.Players[self.GameMap.MyId].Ships[1]
 	nearestPlanets := self.GameMap.NearestPlanetsByDistance(&centerShip)
 	nearestPlanetDist := nearestPlanets[0].Distance
 	targetPlanet := -1
-	for _, p := range(nearestPlanets) {
-		if int(nearestPlanetDist/7.0) > int(p.Distance/7.0) + 4 {
+	for _, p := range nearestPlanets {
+		if int(nearestPlanetDist/7.0) > int(p.Distance/7.0)+4 {
 			continue
 		}
 		if targetPlanet == -1 && p.NumDockingSpots >= 3 {
@@ -163,7 +162,7 @@ func (self *GameController) GameStart() []string{
 
 func (self *GameController) GetSCsInOrder() []*ShipController {
 	scs := []*ShipController{}
-	for _, sc := range(self.ShipControllers) {
+	for _, sc := range self.ShipControllers {
 		if sc.TargetPlanet != -1 {
 			p := self.GameMap.PlanetsLookup[sc.TargetPlanet]
 			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
@@ -178,12 +177,12 @@ func (self *GameController) GetSCsInOrder() []*ShipController {
 	return scs
 }
 
-func (self *GameController) NormalTurn() []string{
+func (self *GameController) NormalTurn() []string {
 	commandQueue := []string{}
 
 	scs := self.GetSCsInOrder()
 
-	for _, sc := range(scs) {
+	for _, sc := range scs {
 		ship := sc.Ship
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
 		log.Println("Ship is located at ", ship.Point)
