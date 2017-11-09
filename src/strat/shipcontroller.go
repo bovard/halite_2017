@@ -22,7 +22,14 @@ type ShipController struct {
 	Mission Mission
 	Info ShipTurnInfo
 	ShipNum int
+	Distance float64
 }
+
+type byDistSc []*ShipController
+
+func (a byDistSc) Len() int           { return len(a) }
+func (a byDistSc) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDistSc) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
 
 func (self *ShipController) Update(ship *hlt.Ship) {
 	self.Past = append(self.Past, self.Ship)
@@ -217,8 +224,12 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 	return message, heading
 }
 
-func (self *ShipController) Act(gameMap *hlt.GameMap) string {
+func (self *ShipController) UpdateInfo(gameMap *hlt.GameMap) {
 	self.Info = CreateShipTurnInfo(self.Ship, gameMap)
+}
+
+func (self *ShipController) Act(gameMap *hlt.GameMap) string {
+	
 
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
 	log.Println("ClosestEnemy is ", self.Info.ClosestEnemyShipDistance)

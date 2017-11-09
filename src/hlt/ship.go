@@ -19,6 +19,7 @@ const (
 type Ship struct {
 	Entity
 	Born            Point
+	LastPos         Point
 	Vel             Vector
 	NextVel         Vector
 	PlanetId        int

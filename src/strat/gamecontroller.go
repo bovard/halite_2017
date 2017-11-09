@@ -3,18 +3,22 @@ package strat
 import (
 	"../hlt"
 	"log"
+	"sort"
 )
 
 type GameController struct {
 	GameMap         *hlt.GameMap
 	ShipControllers map[int]*ShipController
 	ShipNumIdx      int
+	Info            GameTurnInfo
 }
 
 func (self *GameController) Update(gameMap *hlt.GameMap) {
 	self.GameMap = gameMap
 	myPlayer := gameMap.Players[gameMap.MyId]
 	myShips := myPlayer.Ships
+
+	self.Info = CreateGameTurnInfo(gameMap)
 
 	for i := 0; i < len(myShips); i++ {
 		ship := myShips[i]
@@ -103,7 +107,7 @@ func (self *GameController) AssignToPlanets() {
 		if closest != -1 {
 			assignments[closest] += 1
 			sc.TargetPlanet = closest
-			if sc.ShipNum % 15 == 0 {
+			if sc.ShipNum % 15 == 0 && self.Info.ShipCountDeltaToLeader > 2 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
 		}
@@ -115,9 +119,14 @@ func (self *GameController) AssignToPlanets() {
 	log.Println("End reprinting docking assignments")
 }
 
-
+func (self *GameController) UpdateShipInfos() {
+	for _, sc := range(self.ShipControllers) {
+		sc.UpdateInfo(self.GameMap)
+	}
+}
 
 func (self *GameController) Act(turn int) []string {
+	self.UpdateShipInfos()
 	if (turn == 1) {
 		return self.GameStart()
 	} else {
@@ -152,15 +161,30 @@ func (self *GameController) GameStart() []string{
 	return self.NormalTurn()
 }
 
+func (self *GameController) GetSCsInOrder() []*ShipController {
+	scs := []*ShipController{}
+	for _, sc := range(self.ShipControllers) {
+		if sc.TargetPlanet != -1 {
+			p := self.GameMap.PlanetsLookup[sc.TargetPlanet]
+			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
+		} else {
+			sc.Distance = sc.Info.ClosestEnemyShipDistance
+		}
+		scs = append(scs, sc)
+	}
+
+	sort.Sort(byDistSc(scs))
+
+	return scs
+}
+
 func (self *GameController) NormalTurn() []string{
 	commandQueue := []string{}
 
-	myPlayer := self.GameMap.Players[self.GameMap.MyId]
-	myShips := myPlayer.Ships
+	scs := self.GetSCsInOrder()
 
-	for i := 0; i < len(myShips); i++ {
-		ship := myShips[i]
-		sc := self.ShipControllers[ship.Entity.Id]
+	for _, sc := range(scs) {
+		ship := sc.Ship
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
 		log.Println("Ship is located at ", ship.Point)
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
