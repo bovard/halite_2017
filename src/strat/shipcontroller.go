@@ -200,54 +200,6 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 	return message, heading
 }
 
-
-func (self *ShipController) combatOld(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
-	var message ChlMessage
-	var heading hlt.Heading
-
-	if (((self.Ship.Health < hlt.SHIP_MAX_HEALTH && self.Info.AlliesInCombatRange == 0)  || self.Info.EnemiesInCombatRange > self.Info.AlliesInCombatRange) && self.Info.ClosestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance + .5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id) ) {
-		message = COMBAT_KILL_PRODUCTION
-		heading = self.UnsafeMoveToPoint(&self.Info.ClosestEnemyShip.Point, gameMap, true)
-	} else if (self.Info.ClosestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(self.Info.ClosestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.Info.ClosestDockedEnemyShipDistance < 5.0 && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance + .5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id) ) {
-		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
-		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemyShip.Point, gameMap, true)
-	} else if (self.Info.ClosestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(self.Info.ClosestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(self.Info.ClosestEnemyShipDistance + .5), self.Info.ClosestEnemyShipDir, gameMap, self.Info.ClosestEnemyShip.Id) ) {
-		message = COMBAT_SUICIDE_DUE_TO_LOWER_HEALTH
-		heading = self.UnsafeMoveToPoint(&self.Info.ClosestEnemyShip.Point, gameMap, false)
-	} else if (self.Info.AlliesInCombatRange >= self.Info.EnemiesInCombatRange) {
-		message = COMBAT_WE_OUTNUMBER
-		//t := self.Ship.AddVector(&self.Info.ClosestEnemyShip.Vel)
-		//heading = self.MoveToPoint(&t, gameMap)
-		heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-	} else if (self.Info.AlliesInCombatRange + 1 == self.Info.EnemiesInCombatRange ) {
-		if (self.Info.ClosestEnemyShipDistance <= 2 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(self.Info.ClosestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) && self.HeadingIsClear(int(self.Info.ClosestEnemyShipDistance + .5), self.Info.ClosestEnemyShipDir, gameMap, self.Info.ClosestEnemyShip.Id)) {
-			message = COMBAT_TIED_SUICIDE_TO_GAIN_VALUE
-			heading = self.UnsafeMoveToPoint(&self.Info.ClosestEnemyShip.Point, gameMap, false)
-		} else if self.Info.ClosestDockedEnemyShipDistance < 2 * hlt.SHIP_MAX_SPEED && self.Info.EnemiesInThreatRange == 0 && self.Info.EnemiesInCombatRange == 1 {
-			message = COMBAT_TIED_GOING_TO_HURT_PRODUCTION
-			heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
-		}else {
-			message = COMBAT_TIED
-			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-		}
-	} else {
-		if (self.Info.AlliedClosestPlanetDist > 2 * self.Info.EnemyClosestPlanetDist) {
-			message = COMBAT_OUTNUMBERED_AND_FAR_FROM_HOME
-			away := self.Info.ClosestEnemyShip.Entity.Point.VectorTo(&self.Ship.Entity.Point)
-			away = away.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
-			t := self.Ship.AddVector(&away)
-			heading = self.MoveToPoint(&t, gameMap)
-
-		} else {
-			message = COMBAT_OUTNUMBERED
-			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-		}
-	}
-
-	return message, heading
-
-}
-
 func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	self.Info = CreateShipTurnInfo(self.Ship, gameMap)
 
