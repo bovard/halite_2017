@@ -78,12 +78,6 @@ func (self *GameController) AssignToPlanets() {
 		}
 	}
 
-	log.Println("Printing planet assignments")
-	for key, sc := range self.ShipControllers {
-		log.Println(key, " is assigned to ", sc.TargetPlanet, " with status ", sc.Ship.DockingStatus)
-	}
-	log.Println("End docking assignments")
-
 	for _, sc := range self.ShipControllers {
 		log.Println("Looking to make assignment for ship ", sc.Id)
 		if sc.TargetPlanet != -1 {
@@ -103,17 +97,13 @@ func (self *GameController) AssignToPlanets() {
 		}
 		if closest != -1 {
 			assignments[closest] += 1
+			log.Println("Assigning",sc.Ship.Id,"to",closest)
 			sc.TargetPlanet = closest
 			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader != 0 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
 		}
 	}
-	log.Println("Reprinting planet assignments")
-	for key, sc := range self.ShipControllers {
-		log.Println(key, " is assigned to ", sc.TargetPlanet, " with status ", sc.Ship.DockingStatus)
-	}
-	log.Println("End reprinting docking assignments")
 }
 
 func (self *GameController) UpdateShipTurnInfos() {
@@ -196,8 +186,6 @@ func (self *GameController) NormalTurn() []string {
 		if sc.TargetPlanet != -1 {
 			targetPlanet := self.GameMap.PlanetLookup[sc.TargetPlanet]
 			log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
-			rad := ship.Point.AngleTo(&targetPlanet.Point)
-			log.Println("angle to planet is ", int(360+hlt.RadToDeg(rad))%360)
 		}
 		if ship.DockingStatus == hlt.UNDOCKED {
 			cmd := sc.Act(self.GameMap)
