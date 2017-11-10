@@ -183,10 +183,6 @@ func (self *GameController) NormalTurn() []string {
 		log.Println(ship)
 		log.Println("Ship is located at ", ship.Point)
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
-		if sc.TargetPlanet != -1 {
-			targetPlanet := self.GameMap.PlanetLookup[sc.TargetPlanet]
-			log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
-		}
 		if ship.DockingStatus == hlt.UNDOCKED {
 			cmd := sc.Act(self.GameMap)
 			log.Println(cmd)
