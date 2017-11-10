@@ -55,16 +55,16 @@ func (c *Connection) UpdateMap(turn int) GameMap {
 	gameString := c.getString()
 
 	gameMap := GameMap{
-		MyId:          c.PlayerTag,
-		Turn:          turn,
-		Width:         c.width,
-		Height:        c.height,
-		Planets:       []int{},
-		Players:       [4]Player{},
-		EnemyShips:    []int{},
-		MyShips:       []int{},
-		PlanetLookup:  make(map[int]*Planet),
-		ShipLookup:    make(map[int]*Ship),
+		MyId:         c.PlayerTag,
+		Turn:         turn,
+		Width:        c.width,
+		Height:       c.height,
+		Planets:      []int{},
+		Players:      [4]Player{},
+		EnemyShips:   []int{},
+		MyShips:      []int{},
+		PlanetLookup: make(map[int]*Planet),
+		ShipLookup:   make(map[int]*Ship),
 	}
 	//log.Printf("%+v\n",gameMap)
 	gameMap.ParseGameString(gameString)

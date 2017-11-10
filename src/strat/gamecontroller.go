@@ -20,10 +20,9 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 
 	self.GameMap = gameMap
 
-
 	self.Info = CreateGameTurnInfo(gameMap)
 
-	for _, id := range(gameMap.MyShips) {
+	for _, id := range gameMap.MyShips {
 		ship := gameMap.ShipLookup[id]
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
@@ -45,7 +44,7 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 
 	for key, sc := range self.ShipControllers {
 		contains := false
-		for _, id := range(gameMap.MyShips) {
+		for _, id := range gameMap.MyShips {
 			if sc.Id == id {
 				contains = true
 			}
@@ -56,8 +55,6 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 		}
 	}
 }
-
-
 
 func (self *GameController) AssignToPlanets() {
 	var free []*hlt.Planet
@@ -138,7 +135,7 @@ func (self *GameController) Act(turn int) []string {
 func (self *GameController) GameStart() []string {
 	bestTargetDist := 1000000.0
 	targetPlanet := -1
-	for _, id := range(self.GameMap.MyShips) {
+	for _, id := range self.GameMap.MyShips {
 		ship := self.GameMap.ShipLookup[id]
 		nearestPlanets := self.GameMap.NearestPlanetsByDistance(ship)
 		for _, p := range nearestPlanets {
@@ -168,10 +165,10 @@ func (self *GameController) GameStart() []string {
 func (self *GameController) GetSCsInOrder() []*ShipController {
 	scs := []*ShipController{}
 	for _, sc := range self.ShipControllers {
-		if sc.TargetPlanet != -1  {
+		if sc.TargetPlanet != -1 {
 			p := self.GameMap.PlanetLookup[sc.TargetPlanet]
 			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
-			if sc.Info.ClosestEnemyShipDistance * 2 < sc.Distance {
+			if sc.Info.ClosestEnemyShipDistance*2 < sc.Distance {
 				sc.Distance = sc.Info.ClosestEnemyShipDistance
 			}
 		} else {
@@ -193,7 +190,7 @@ func (self *GameController) NormalTurn() []string {
 	for _, sc := range scs {
 		ship := sc.Ship
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
-		log.Println(ship)	
+		log.Println(ship)
 		log.Println("Ship is located at ", ship.Point)
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
 		if sc.TargetPlanet != -1 {

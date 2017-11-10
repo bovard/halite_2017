@@ -86,7 +86,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 		}
 		if s.DockingStatus == hlt.UNDOCKED {
 			// check if the closest enemy ship moves toward us, will will collide?
-			if s.Id == self.Info.ClosestEnemyShip.Id && self.Info.ClosestEnemyShipDistance <= 2 * hlt.SHIP_MAX_SPEED {
+			if s.Id == self.Info.ClosestEnemyShip.Id && self.Info.ClosestEnemyShipDistance <= 2*hlt.SHIP_MAX_SPEED {
 				tm := hlt.CreateVector(int(self.Info.ClosestEnemyShipDistance), self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point))
 				nv = v.Subtract(&tm)
 				if self.Ship.WillCollideWith(&s.Entity, &nv) {
@@ -101,7 +101,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 				}
 			}
 		}
-				
+
 	}
 	for _, s := range self.Info.PossibleAlliedShipCollisions {
 		log.Println("Comparing with friendly ship ", s.Id, " at loc ", s.Point, " with Vel ", s.NextVel)
@@ -115,7 +115,6 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	}
 	return true
 }
-
 
 func (self *ShipController) UnsafeMoveToPoint(point *hlt.Point, gameMap *hlt.GameMap, maxSpeed bool) hlt.Heading {
 	log.Println("UnsafeMoveToPoint from ", self.Ship.Point, " to ", point)
@@ -193,13 +192,13 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance+.5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
 	canKillSuicideOnNearestEnemy := self.Info.ClosestEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestEnemyShipDistance+.5), self.Info.ClosestEnemyShipDir, gameMap, self.Info.ClosestEnemyShip.Id)
 
-	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE / 2 {
+	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE/2 {
 		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
 		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemyShip.Point, gameMap, true)
-	} else if canKillSuicideOnNearestEnemy && self.Info.AlliesInCombatRange == 0 && self.Info.EnemiesInCombatRange > 0 && int(self.Ship.Health / hlt.SHIP_MAX_HEALTH) < int(self.Info.ClosestEnemyShip.Health / hlt.SHIP_MAX_HEALTH) {
+	} else if canKillSuicideOnNearestEnemy && self.Info.AlliesInCombatRange == 0 && self.Info.EnemiesInCombatRange > 0 && int(self.Ship.Health/hlt.SHIP_MAX_HEALTH) < int(self.Info.ClosestEnemyShip.Health/hlt.SHIP_MAX_HEALTH) {
 		message = COMBAT_SUICIDE_DUE_TO_LOWER_HEALTH
 		heading = self.UnsafeMoveToPoint(&self.Info.ClosestEnemyShip.Point, gameMap, true)
-	} else if self.Info.ClosestEnemyShip.Vel.Magnitude() > 0 && !self.Info.ClosestEnemyShipClosingDistance && self.Info.ClosestDockedEnemyShipDistance < 2 * hlt.SHIP_MAX_SPEED {
+	} else if self.Info.ClosestEnemyShip.Vel.Magnitude() > 0 && !self.Info.ClosestEnemyShipClosingDistance && self.Info.ClosestDockedEnemyShipDistance < 2*hlt.SHIP_MAX_SPEED {
 		message = CHASING_DOWN_ENEMY
 		heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
 		if self.HeadingIsClear(int(hlt.SHIP_MAX_SPEED), heading.GetAngleInRads(), gameMap, self.Info.ClosestEnemyShip.Id) {
@@ -208,8 +207,8 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 	} else if self.Info.EnemiesInCombatRange > 1 {
 		message = MOVING_TO_BETTER_LOCAL
 		// free to move to opimal spot
-		if math.Abs(self.Info.ClosestDockedEnemyShipDir - self.Ship.AngleTo(&self.Info.EnemiesByDist[1].Point)) < 2 * math.Pi / 3 {
-	    	v := self.Info.EnemiesByDist[1].VectorTo(&self.Info.ClosestEnemyShip.Point)
+		if math.Abs(self.Info.ClosestDockedEnemyShipDir-self.Ship.AngleTo(&self.Info.EnemiesByDist[1].Point)) < 2*math.Pi/3 {
+			v := self.Info.EnemiesByDist[1].VectorTo(&self.Info.ClosestEnemyShip.Point)
 			v = v.RescaleToMagFloat(hlt.SHIP_MAX_ATTACK_RANGE + .95)
 			p := self.Info.ClosestEnemyShip.AddVector(&v)
 			heading = self.MoveToPoint(&p, gameMap)

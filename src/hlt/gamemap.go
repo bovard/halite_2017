@@ -1,9 +1,9 @@
 package hlt
 
 import (
+	"log"
 	"sort"
 	"strconv"
-	"log"
 	"strings"
 )
 
@@ -71,7 +71,7 @@ func (self *GameMap) ParseGameString(gameString string) {
 }
 
 func (self *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
-	log.Println("coming gamemap from turn",self.Turn,"to old turn",lastFrame.Turn)
+	log.Println("coming gamemap from turn", self.Turn, "to old turn", lastFrame.Turn)
 	for _, id := range append(self.MyShips, self.EnemyShips...) {
 		ship := self.ShipLookup[id]
 		log.Println("Updating Ship", id)
@@ -81,34 +81,34 @@ func (self *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
 			ship.Born = oldShip.Born
 			ship.Vel = oldShip.Point.VectorTo(&ship.Point)
 			ship.LastPos = oldShip.Point
-		} 
+		}
 	}
 }
 
 func (self *GameMap) LookaheadCalculations() {
 
 	allShips := []*Ship{}
-	for _, s := range(self.ShipLookup) {
+	for _, s := range self.ShipLookup {
 		allShips = append(allShips, s)
 	}
 
-	for _, s := range(self.ShipLookup) {
-		for _, t := range(allShips) {
+	for _, s := range self.ShipLookup {
+		for _, t := range allShips {
 			t.Distance = s.SqDistanceTo(&t.Point)
 		}
 		sort.Sort(byDistShip(allShips))
 		numEnemies := 0
-		for _, t := range(allShips) {
+		for _, t := range allShips {
 			if t.Distance > SHIP_SQ_MAX_ATTACK_DISTANCE {
 				break
 			} else if t.Owner != s.Owner {
-				numEnemies ++
+				numEnemies++
 			}
 		}
 		if numEnemies > 0 {
 			s.FireNextTurn = true
 			dmg := SHIP_DAMAGE / float64(numEnemies)
-			for _, t := range(allShips) {
+			for _, t := range allShips {
 				if t.Distance > SHIP_SQ_MAX_ATTACK_DISTANCE {
 					break
 				} else if t.Owner != s.Owner {
@@ -119,13 +119,12 @@ func (self *GameMap) LookaheadCalculations() {
 		}
 	}
 
-
 }
 
 func (self *GameMap) NearestPlanetsByDistance(ship *Ship) []*Planet {
 	planets := []*Planet{}
 
-	for _, id := range(self.Planets) {
+	for _, id := range self.Planets {
 		planet := self.PlanetLookup[id]
 		planet.Distance = ship.Entity.DistanceToCollision(&planet.Entity)
 		planets = append(planets, planet)
@@ -161,7 +160,6 @@ func (self *GameMap) NearestShipsByDistance(ship *Ship, ships []int) []*Ship {
 	return sortedShips
 }
 
-
 type byDist []*Planet
 
 func (a byDist) Len() int           { return len(a) }
@@ -173,4 +171,3 @@ type byDistShip []*Ship
 func (a byDistShip) Len() int           { return len(a) }
 func (a byDistShip) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byDistShip) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
-

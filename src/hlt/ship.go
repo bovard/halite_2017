@@ -68,8 +68,8 @@ func ParseShip(playerId int, tokens []string) (Ship, []string) {
 	}
 
 	ship := Ship{
-		Born: 			 shipPoint,
-		LastPos:		 shipPoint,
+		Born:            shipPoint,
+		LastPos:         shipPoint,
 		PlanetId:        shipPlanetId,
 		DockingStatus:   IntToDockingStatus(shipDockingStatus),
 		DockingProgress: shipDockingProgress,
