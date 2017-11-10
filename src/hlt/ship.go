@@ -27,6 +27,8 @@ type Ship struct {
 	DockingProgress float64
 	WeaponCooldown  float64
 	Distance        float64
+	IncomingDamage  float64
+	FireNextTurn    bool
 }
 
 func ParseShip(playerId int, tokens []string) (Ship, []string) {
@@ -75,6 +77,8 @@ func ParseShip(playerId int, tokens []string) (Ship, []string) {
 		Vel:             shipVel,
 		NextVel:         nextVel,
 		Entity:          shipEntity,
+		IncomingDamage:  0,
+		FireNextTurn:    false,
 	}
 
 	return ship, tokens[10:]

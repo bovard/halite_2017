@@ -26,7 +26,7 @@ func main() {
 		defer f.Close()
 		log.SetOutput(f)
 	}
-	gameMap := conn.UpdateMap()
+	gameMap := conn.UpdateMap(0)
 	gameturn := 1
 	gc := strat.GameController{
 		GameMap:         &gameMap,
@@ -34,15 +34,12 @@ func main() {
 		ShipNumIdx:      0,
 	}
 
-	var newGameMap hlt.GameMap
 	for true {
 		log.Println("Game Turn: ", gameturn)
 		start := time.Now()
-		newGameMap = conn.UpdateMap()
-		newGameMap.UpdateShipsFromHistory(&gameMap)
-		gameMap = newGameMap
-
-		gc.Update(&gameMap)
+		newMap := conn.UpdateMap(gameturn)
+		gc.Update(&newMap)
+		gameMap = newMap
 
 		commandQueue := gc.Act(gameturn)
 

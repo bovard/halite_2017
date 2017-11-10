@@ -3,62 +3,60 @@ package hlt
 import (
 	"sort"
 	"strconv"
+	"log"
 	"strings"
 )
 
 type GameMap struct {
 	MyId, Width, Height int
-	Planets             []Planet /// preallocating for speed, assuming we cant have > 100 planets
+	Turn                int
 	Players             [4]Player
-	Entities            []Entity
-	EnemyShips          []*Ship
-	MyShips             []*Ship
+	Planets             []int
+	EnemyShips          []int
+	MyShips             []int
 	ShipLookup          map[int]*Ship
-	PlanetsLookup       map[int]Planet
+	PlanetLookup        map[int]*Planet
 }
 
 type Player struct {
 	Id    int
-	Ships []Ship /// preallocating for speed, assuming we cant have > 10k ships.
+	Ships []int /// preallocating for speed, assuming we cant have > 10k ships.
 }
 
-func ParsePlayer(tokens []string) (Player, []string) {
+func (self *GameMap) ParsePlayer(tokens []string) (Player, []string) {
 	playerId, _ := strconv.Atoi(tokens[0])
 	playerNumShips, _ := strconv.ParseFloat(tokens[1], 64)
 
 	player := Player{
 		Id:    playerId,
-		Ships: []Ship{},
+		Ships: []int{},
 	}
 
 	tokens = tokens[2:]
 	for i := 0; float64(i) < playerNumShips; i++ {
 		ship, tokensnew := ParseShip(playerId, tokens)
 		tokens = tokensnew
-		player.Ships = append(player.Ships, ship)
+		player.Ships = append(player.Ships, ship.Id)
+		self.ShipLookup[ship.Id] = &ship
+		if ship.Owner == self.MyId {
+			self.MyShips = append(self.MyShips, ship.Id)
+		} else {
+			self.EnemyShips = append(self.EnemyShips, ship.Id)
+		}
 	}
 
 	return player, tokens
 }
 
-func ParseGameString(gameString string, self GameMap) GameMap {
+func (self *GameMap) ParseGameString(gameString string) {
 	tokens := strings.Split(gameString, " ")
 	numPlayers, _ := strconv.Atoi(tokens[0])
 	tokens = tokens[1:]
 
 	for i := 0; i < numPlayers; i++ {
-		player, tokensnew := ParsePlayer(tokens)
+		player, tokensnew := self.ParsePlayer(tokens)
 		tokens = tokensnew
 		self.Players[player.Id] = player
-		for j := 0; j < len(player.Ships); j++ {
-			self.ShipLookup[player.Ships[j].Id] = &player.Ships[j]
-			self.Entities = append(self.Entities, player.Ships[j].Entity)
-			if i == self.MyId {
-				self.MyShips = append(self.MyShips, &player.Ships[j])
-			} else {
-				self.EnemyShips = append(self.EnemyShips, &player.Ships[j])
-			}
-		}
 	}
 
 	numPlanets, _ := strconv.Atoi(tokens[0])
@@ -67,35 +65,70 @@ func ParseGameString(gameString string, self GameMap) GameMap {
 	for i := 0; i < numPlanets; i++ {
 		planet, tokensnew := ParsePlanet(tokens)
 		tokens = tokensnew
-		self.Planets = append(self.Planets, planet)
-		self.PlanetsLookup[planet.Entity.Id] = planet
-		self.Entities = append(self.Entities, planet.Entity)
+		self.Planets = append(self.Planets, planet.Id)
+		self.PlanetLookup[planet.Id] = &planet
 	}
-
-	return self
 }
 
-func (gameMap *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
-	for _, ship := range append(gameMap.MyShips, gameMap.EnemyShips...) {
-		if oldShip, ok := lastFrame.ShipLookup[ship.Id]; ok {
+func (self *GameMap) UpdateShipsFromHistory(lastFrame *GameMap) {
+	log.Println("coming gamemap from turn",self.Turn,"to old turn",lastFrame.Turn)
+	for _, id := range append(self.MyShips, self.EnemyShips...) {
+		ship := self.ShipLookup[id]
+		log.Println("Updating Ship", id)
+		log.Println("we are currently at", ship.Point)
+		if oldShip, ok := lastFrame.ShipLookup[id]; ok {
+			log.Println("FOUND OLD MATCH at loc", oldShip.Point)
 			ship.Born = oldShip.Born
 			ship.Vel = oldShip.Point.VectorTo(&ship.Point)
-		} else {
-			ship.Born = ship.Point
-			ship.Vel = Vector{
-				X: 0,
-				Y: 0,
+			ship.LastPos = oldShip.Point
+		} 
+	}
+}
+
+func (self *GameMap) LookaheadCalculations() {
+
+	allShips := []*Ship{}
+	for _, s := range(self.ShipLookup) {
+		allShips = append(allShips, s)
+	}
+
+	for _, s := range(self.ShipLookup) {
+		for _, t := range(allShips) {
+			t.Distance = s.SqDistanceTo(&t.Point)
+		}
+		sort.Sort(byDistShip(allShips))
+		numEnemies := 0
+		for _, t := range(allShips) {
+			if t.Distance > SHIP_SQ_MAX_ATTACK_DISTANCE {
+				break
+			} else if t.Owner != s.Owner {
+				numEnemies ++
+			}
+		}
+		if numEnemies > 0 {
+			s.FireNextTurn = true
+			dmg := SHIP_DAMAGE / float64(numEnemies)
+			for _, t := range(allShips) {
+				if t.Distance > SHIP_SQ_MAX_ATTACK_DISTANCE {
+					break
+				} else if t.Owner != s.Owner {
+					toApply := self.ShipLookup[t.Id]
+					toApply.IncomingDamage += dmg
+				}
 			}
 		}
 	}
 
+
 }
 
-func (gameMap *GameMap) NearestPlanetsByDistance(ship *Ship) []Planet {
-	planets := gameMap.Planets
+func (self *GameMap) NearestPlanetsByDistance(ship *Ship) []*Planet {
+	planets := []*Planet{}
 
-	for i := 0; i < len(planets); i++ {
-		planets[i].Distance = ship.Entity.DistanceToCollision(&planets[i].Entity)
+	for _, id := range(self.Planets) {
+		planet := self.PlanetLookup[id]
+		planet.Distance = ship.Entity.DistanceToCollision(&planet.Entity)
+		planets = append(planets, planet)
 	}
 
 	sort.Sort(byDist(planets))
@@ -112,53 +145,32 @@ func (self *GameMap) IsOnMap(p *Point) bool {
 	return true
 }
 
-func (gameMap GameMap) NearestShipsByDistance(ship *Ship, ships []*Ship) []Ship {
-	var enemies []Ship
-	for _, e := range ships {
-		enemies = append(enemies, *e)
+func (self *GameMap) NearestShipsByDistance(ship *Ship, ships []int) []*Ship {
+	var sortedShips []*Ship
+	for _, id := range ships {
+		s := self.ShipLookup[id]
+		sortedShips = append(sortedShips, s)
 	}
 
-	for i := 0; i < len(enemies); i++ {
-		enemies[i].Distance = ship.Entity.DistanceToCollision(&enemies[i].Entity)
+	for i := 0; i < len(sortedShips); i++ {
+		sortedShips[i].Distance = ship.DistanceToCollision(&sortedShips[i].Entity)
 	}
 
-	sort.Sort(byDistShip(enemies))
+	sort.Sort(byDistShip(sortedShips))
 
-	return enemies
+	return sortedShips
 }
 
-func (gameMap GameMap) NearestEnemiesByDistance(ship Ship) []Entity {
-	entities := gameMap.Entities
-	var enemies []Entity
-	for _, e := range entities {
-		if e.Owner != gameMap.MyId && e.Owner != -1 && e.Radius < 1 {
-			enemies = append(enemies, e)
-		}
-	}
 
-	for i := 0; i < len(enemies); i++ {
-		enemies[i].Distance = ship.Entity.DistanceToCollision(&enemies[i])
-	}
+type byDist []*Planet
 
-	sort.Sort(byDistEntity(enemies))
+func (a byDist) Len() int           { return len(a) }
+func (a byDist) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDist) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
 
-	return enemies
-}
-
-type byDistEntity []Entity
-
-func (a byDistEntity) Len() int           { return len(a) }
-func (a byDistEntity) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byDistEntity) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
-
-type byDistShip []Ship
+type byDistShip []*Ship
 
 func (a byDistShip) Len() int           { return len(a) }
 func (a byDistShip) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byDistShip) Less(i, j int) bool { return a[i].Distance < a[j].Distance }
 
-type byDist []Planet
-
-func (a byDist) Len() int           { return len(a) }
-func (a byDist) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byDist) Less(i, j int) bool { return a[i].Distance < a[j].Distance }

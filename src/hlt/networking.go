@@ -50,24 +50,24 @@ func NewConnection(botName string) Connection {
 	return conn
 }
 
-func (c *Connection) UpdateMap() GameMap {
-	log.Printf("--- NEW TURN --- \n")
+func (c *Connection) UpdateMap(turn int) GameMap {
+	log.Println("--- NEW TURN ---", turn)
 	gameString := c.getString()
 
 	gameMap := GameMap{
 		MyId:          c.PlayerTag,
+		Turn:          turn,
 		Width:         c.width,
 		Height:        c.height,
-		Planets:       []Planet{},
+		Planets:       []int{},
 		Players:       [4]Player{},
-		EnemyShips:    []*Ship{},
-		MyShips:       []*Ship{},
-		Entities:      []Entity{},
-		PlanetsLookup: make(map[int]Planet),
+		EnemyShips:    []int{},
+		MyShips:       []int{},
+		PlanetLookup:  make(map[int]*Planet),
 		ShipLookup:    make(map[int]*Ship),
 	}
 	//log.Printf("%+v\n",gameMap)
-	gameMap = ParseGameString(gameString, gameMap)
+	gameMap.ParseGameString(gameString)
 	log.Printf("    Parsed map")
 	return gameMap
 }

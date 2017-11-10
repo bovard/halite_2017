@@ -6,35 +6,37 @@ import (
 
 type ShipTurnInfo struct {
 	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions []*hlt.Ship
-	PossiblePlanetCollisions []hlt.Planet
+	PossiblePlanetCollisions []*hlt.Planet
 	TotalEnemies, TotalAllies, EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange, AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange int
 	ClosestDockedEnemyShipDistance, ClosestDockedEnemyShipDir, ClosestEnemyShipDistance, ClosestEnemyShipDir, ClosestAlliedShipDistance, ClosestAlliedShipDir float64
 	ClosestDockedEnemyShip, ClosestEnemyShip, ClosestAlliedShip *hlt.Ship
 	ClosestEnemyShipClosingDistance bool
-	PlanetsByDist []hlt.Planet
-	EnemiesByDist, AlliesByDist []hlt.Ship
-	AlliedClosestPlanet, EnemyClosestPlanet hlt.Planet
+	PlanetsByDist []*hlt.Planet
+	EnemiesByDist, AlliesByDist []*hlt.Ship
+	AlliedClosestPlanet, EnemyClosestPlanet *hlt.Planet
 	AlliedClosestPlanetDist, EnemyClosestPlanetDist float64
 }
 
 func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 
-	possiblePlanetCollisions := []hlt.Planet{}
-	for _, p := range(gameMap.Planets) {
+	possiblePlanetCollisions := []*hlt.Planet{}
+	for _, p := range(gameMap.PlanetLookup) {
 		if ship.DistanceToCollision(&p.Entity) <= hlt.SHIP_MAX_SPEED {
 			possiblePlanetCollisions = append(possiblePlanetCollisions, p)
 		}
 	}
 
 	possibleEnemyShipCollisions := []*hlt.Ship{}
-	for _, s := range(gameMap.EnemyShips) {
+	for _, id := range(gameMap.EnemyShips) {
+		s := gameMap.ShipLookup[id]
 		if ship.DistanceToCollision(&s.Entity) <= 2 * hlt.SHIP_MAX_SPEED {
 			possibleEnemyShipCollisions = append(possibleEnemyShipCollisions, s)
 		}
 	}
 
 	possibleAlliedShipCollisions := []*hlt.Ship{}
-	for _, s := range(gameMap.MyShips) {
+	for _, id := range(gameMap.MyShips) {
+		s := gameMap.ShipLookup[id]
 		if ship.DistanceToCollision(&s.Entity) <= 2 * hlt.SHIP_MAX_SPEED {
 			possibleAlliedShipCollisions = append(possibleAlliedShipCollisions, s)
 		}
@@ -78,9 +80,9 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 
 	planets := gameMap.NearestPlanetsByDistance(ship)
 
-	var alliedClosestPlanet hlt.Planet
+	var alliedClosestPlanet *hlt.Planet
 	alliedClosestPlanetDist := 100000000.0
-	var enemyClosestPlanet hlt.Planet
+	var enemyClosestPlanet *hlt.Planet
 	enemyClosestPlanetDist :=  100000000.0
 
 	for _, p := range(planets) {
@@ -97,10 +99,11 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 		}
 	}
 
-	for _, s := range(append(gameMap.MyShips, gameMap.EnemyShips...)) {
-		if s.Id == ship.Id {
+	for _, id := range(append(gameMap.MyShips, gameMap.EnemyShips...)) {
+		if id == ship.Id {
 			continue
 		}
+		s := gameMap.ShipLookup[id]
 		dist := ship.DistanceToCollision(&s.Entity)
 		if dist <= hlt.SHIP_MAX_ATTACK_RANGE {
 			if s.DockingStatus == hlt.UNDOCKED {

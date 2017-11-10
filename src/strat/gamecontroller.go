@@ -13,31 +13,22 @@ type GameController struct {
 	Info            GameTurnInfo
 }
 
-func (self *GameController) UpdateShips(newGameMap *hlt.GameMap) {
-	for _, s := range(self.GameMap.ShipLookup) {
-		_, contains := newGameMap.ShipLookup[s.Id]
-		if contains {
-			newS := newGameMap.ShipLookup[s.Id]
-			newS.Born = s.Born
-			newS.Vel = s.Point.VectorTo(&newS.Point)
-			newS.LastPos = s.Point
-		}
-	}
-}
-
 func (self *GameController) Update(gameMap *hlt.GameMap) {
+
+	gameMap.UpdateShipsFromHistory(self.GameMap)
+	gameMap.LookaheadCalculations()
+
 	self.GameMap = gameMap
-	myPlayer := gameMap.Players[gameMap.MyId]
-	myShips := myPlayer.Ships
+
 
 	self.Info = CreateGameTurnInfo(gameMap)
 
-	for i := 0; i < len(myShips); i++ {
-		ship := myShips[i]
+	for _, id := range(gameMap.MyShips) {
+		ship := gameMap.ShipLookup[id]
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
 			sc := ShipController{
-				Ship:         &ship,
+				Ship:         ship,
 				Past:         nil,
 				Id:           ship.Entity.Id,
 				TargetPlanet: -1,
@@ -48,14 +39,14 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 			self.ShipControllers[ship.Entity.Id] = &sc
 		} else {
 			sc := self.ShipControllers[ship.Entity.Id]
-			sc.Update(&ship)
+			sc.Update(ship)
 		}
 	}
 
 	for key, sc := range self.ShipControllers {
 		contains := false
-		for i := 0; i < len(myShips); i++ {
-			if sc.Id == myShips[i].Entity.Id {
+		for _, id := range(gameMap.MyShips) {
+			if sc.Id == id {
 				contains = true
 			}
 
@@ -66,17 +57,14 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 	}
 }
 
-func remove(s []int, i int) []int {
-	s[len(s)-1], s[i] = s[i], s[len(s)-1]
-	return s[:len(s)-1]
-}
+
 
 func (self *GameController) AssignToPlanets() {
-	var free []hlt.Planet
+	var free []*hlt.Planet
 	assignments := make(map[int]int)
 
-	for _, p := range self.GameMap.Planets {
-		assignments[p.Entity.Id] = 0
+	for _, id := range self.GameMap.Planets {
+		assignments[id] = 0
 	}
 
 	for _, sc := range self.ShipControllers {
@@ -85,8 +73,9 @@ func (self *GameController) AssignToPlanets() {
 		}
 	}
 
-	for _, p := range self.GameMap.Planets {
-		assigned := assignments[p.Entity.Id]
+	for _, id := range self.GameMap.Planets {
+		assigned := assignments[id]
+		p := self.GameMap.PlanetLookup[id]
 		if (p.Owned == 0 || p.Owner == self.GameMap.MyId) && assigned < p.NumDockingSpots {
 			free = append(free, p)
 		}
@@ -149,9 +138,9 @@ func (self *GameController) Act(turn int) []string {
 func (self *GameController) GameStart() []string {
 	bestTargetDist := 1000000.0
 	targetPlanet := -1
-	for i := 0; i < 3; i++ {
-		ship := self.GameMap.Players[self.GameMap.MyId].Ships[i]
-		nearestPlanets := self.GameMap.NearestPlanetsByDistance(&ship)
+	for _, id := range(self.GameMap.MyShips) {
+		ship := self.GameMap.ShipLookup[id]
+		nearestPlanets := self.GameMap.NearestPlanetsByDistance(ship)
 		for _, p := range nearestPlanets {
 			if int(nearestPlanets[0].Distance/7.0) > int(p.Distance/7.0)+4 {
 				continue
@@ -180,7 +169,7 @@ func (self *GameController) GetSCsInOrder() []*ShipController {
 	scs := []*ShipController{}
 	for _, sc := range self.ShipControllers {
 		if sc.TargetPlanet != -1  {
-			p := self.GameMap.PlanetsLookup[sc.TargetPlanet]
+			p := self.GameMap.PlanetLookup[sc.TargetPlanet]
 			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
 			if sc.Info.ClosestEnemyShipDistance * 2 < sc.Distance {
 				sc.Distance = sc.Info.ClosestEnemyShipDistance
@@ -204,10 +193,11 @@ func (self *GameController) NormalTurn() []string {
 	for _, sc := range scs {
 		ship := sc.Ship
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
+		log.Println(ship)	
 		log.Println("Ship is located at ", ship.Point)
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
 		if sc.TargetPlanet != -1 {
-			targetPlanet := self.GameMap.PlanetsLookup[sc.TargetPlanet]
+			targetPlanet := self.GameMap.PlanetLookup[sc.TargetPlanet]
 			log.Println("planet location is ", targetPlanet.Point, ", d = ", ship.DistanceToCollision(&targetPlanet.Entity))
 			rad := ship.Point.AngleTo(&targetPlanet.Point)
 			log.Println("angle to planet is ", int(360+hlt.RadToDeg(rad))%360)

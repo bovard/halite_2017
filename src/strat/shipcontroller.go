@@ -77,6 +77,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	var nv hlt.Vector
 	for _, s := range self.Info.PossibleEnemyShipCollisions {
 		log.Println("Comparing with enemyShip ", s.Id, " at loc ", s.Point)
+		log.Println("Enemey ship LastPos", s.LastPos, "velocity", s.Vel)
 		if s.Id == target {
 			continue
 		}
@@ -84,7 +85,8 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 			return false
 		}
 		if s.DockingStatus == hlt.UNDOCKED {
-			if s.Id == self.Info.ClosestEnemyShip.Id {
+			// check if the closest enemy ship moves toward us, will will collide?
+			if s.Id == self.Info.ClosestEnemyShip.Id && self.Info.ClosestEnemyShipDistance <= 2 * hlt.SHIP_MAX_SPEED {
 				tm := hlt.CreateVector(int(self.Info.ClosestEnemyShipDistance), self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point))
 				nv = v.Subtract(&tm)
 				if self.Ship.WillCollideWith(&s.Entity, &nv) {
@@ -92,6 +94,7 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 				}
 			}
 			if s.Vel.Magnitude() > 0 {
+				log.Println("DOING IT")
 				nv = v.Subtract(&s.Vel)
 				if self.Ship.WillCollideWith(&s.Entity, &nv) {
 					return false
@@ -250,13 +253,13 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	if self.Info.EnemiesInCombatRange > 0 || self.Info.EnemiesInThreatRange > 0 || self.Info.EnemiesInActiveThreatRange > 0 {
 		message, heading = self.combat(gameMap)
 	} else if self.Mission == MISSION_FOUND_PLANET {
-		planet := gameMap.PlanetsLookup[self.TargetPlanet]
+		planet := gameMap.PlanetLookup[self.TargetPlanet]
 		log.Println("Continuing with assigned planet")
-		if self.Ship.CanDock(&planet) {
+		if self.Ship.CanDock(planet) {
 			log.Println("We can dock!")
-			return self.Ship.Dock(&planet)
+			return self.Ship.Dock(planet)
 		}
-		h := self.MoveToDockingRange(&planet, gameMap)
+		h := self.MoveToDockingRange(planet, gameMap)
 		if h.Magnitude > 0 {
 			log.Println("can move to docking range of", planet.Id)
 			message = MOVE_TO_DOCKING
@@ -264,10 +267,10 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		} else {
 			log.Println("moving toward planet", planet.Id)
 			message = MOVING_TOWARD_PLANET
-			heading = self.MoveToPlanet(&planet, gameMap)
+			heading = self.MoveToPlanet(planet, gameMap)
 		}
 	} else if self.TargetPlanet != -1 {
-		planet := gameMap.PlanetsLookup[self.TargetPlanet]
+		planet := gameMap.PlanetLookup[self.TargetPlanet]
 		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
 
 		if self.Info.ClosestEnemyShipDistance < 2*hlt.SHIP_MAX_SPEED {
@@ -292,11 +295,11 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
 		} else {
 			log.Println("Continuing with assigned planet")
-			if self.Ship.CanDock(&planet) {
+			if self.Ship.CanDock(planet) {
 				log.Println("We can dock!")
-				return self.Ship.Dock(&planet)
+				return self.Ship.Dock(planet)
 			}
-			h := self.MoveToDockingRange(&planet, gameMap)
+			h := self.MoveToDockingRange(planet, gameMap)
 			if h.Magnitude > 0 {
 				log.Println("can move to docking range of", planet.Id)
 				message = MOVE_TO_DOCKING
@@ -304,7 +307,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			} else {
 				log.Println("moving toward planet", planet.Id)
 				message = MOVING_TOWARD_PLANET
-				heading = self.MoveToPlanet(&planet, gameMap)
+				heading = self.MoveToPlanet(planet, gameMap)
 			}
 		}
 	} else {
@@ -313,9 +316,11 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	}
 	log.Println(heading)
 	if heading.Magnitude > 0 {
+		s := gameMap.ShipLookup[self.Ship.Id]
+		log.Println("Compare pointers")
+		log.Println(&self.Ship, &s)
 		// TODO: figure out why these aren't the same thing!! :(
 		self.Ship.NextVel = heading.ToVelocity()
-		s := gameMap.ShipLookup[self.Ship.Id]
 		s.NextVel = heading.ToVelocity()
 	}
 	return heading.ToMoveCmd(self.Ship, int(message))
