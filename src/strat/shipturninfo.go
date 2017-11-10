@@ -62,7 +62,7 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 	closestEnemyShip := gameMap.ShipLookup[enemies[0].Id]
 	closestEnemyShipDir := ship.AngleTo(&closestEnemyShip.Point)
 	v2e := ship.Vel.Add(&closestEnemyShip.Vel)
-	closestEnemyShipClosingDistance := v2e.Magnitude() > ship.Vel.Magnitude()
+	closestEnemyShipClosingDistance := v2e.Magnitude() < ship.Vel.Magnitude()
 	var closestDockedEnemyShip *hlt.Ship 
 	var closestDockedEnemyShipDir float64
 	closestDockedEnemyShipDistance := 100000000.0
