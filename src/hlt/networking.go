@@ -30,7 +30,7 @@ func (c *Connection) getString() string {
 func (c *Connection) getInt() int {
 	i, err := strconv.Atoi(c.getString())
 	if err != nil {
-		log.Printf("Errored on initial tag: ", err)
+		log.Println("Errored on initial tag: ", err)
 	}
 	return i
 }
@@ -66,14 +66,13 @@ func (c *Connection) UpdateMap(turn int) GameMap {
 		PlanetLookup: make(map[int]*Planet),
 		ShipLookup:   make(map[int]*Ship),
 	}
-	//log.Printf("%+v\n",gameMap)
 	gameMap.ParseGameString(gameString)
-	log.Printf("    Parsed map")
+	log.Println("    Parsed map")
 	return gameMap
 }
 
 func (c *Connection) SubmitCommands(commandQueue []string) {
 	commandString := strings.Join(commandQueue, " ")
-	log.Printf("Final string : %+v\n", commandString)
+	log.Println("Final string :", commandString)
 	c.sendString(commandString)
 }
