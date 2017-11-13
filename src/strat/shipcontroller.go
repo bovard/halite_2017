@@ -11,6 +11,7 @@ type Mission int
 const (
 	MISSION_NORMAL Mission = iota
 	MISSION_FOUND_PLANET
+	STUPID_RUN_AWAY_META
 )
 
 type ShipController struct {
@@ -22,6 +23,7 @@ type ShipController struct {
 	Info         ShipTurnInfo
 	ShipNum      int
 	Distance     float64
+	Target       *hlt.Point
 }
 
 type byDistSc []*ShipController
@@ -239,6 +241,64 @@ func (self *ShipController) UpdateInfo(gameMap *hlt.GameMap) {
 	self.Info = CreateShipTurnInfo(self.Ship, gameMap)
 }
 
+
+func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+	heading := hlt.Heading{
+		Magnitude: 0,
+		Angle:     0,
+	}
+	message := RUN_AWAY
+
+}
+
+
+func nextCorner(current hlt.Point, gameMap *hlt.GameMap) {
+	if current.X == 0 && current.Y == 0 {
+		return hlt.Point {
+			X: gameMap.Width,
+			Y: 0,
+		} 
+	} else if current.X == gameMap.Width && current.Y == 0 {
+		return hlt.Point {
+			X: gameMap.Width,
+			Y: gameMap.Height,
+		}
+	} else if current.X == gameMap.Width && current.Y == gameMap.Height {
+		return hlt.Point {
+			X: 0,
+			Y: gameMap.Height,
+		}
+	} else if current.X == 0 && current.Y == gameMap.Height {
+		return hlt.Point {
+			X: 0,
+			Y: 0,
+		}
+	}
+}
+
+func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+	heading := hlt.Heading{
+		Magnitude: 0,
+		Angle:     0,
+	}
+	message := HIDE_WE_ARE_LOSING	
+
+
+
+	return message, heading
+}
+
+
+func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
+	if self.MISSION == MISSION_FOUND_PLANET {
+		planet := gameMap.PlanetLookup[self.TargetPlanet]
+		self.Target = &planet.Point
+	} else if self.TargetPlanet != -1 {
+		planet := gameMap.PlanetLookup[self.TargetPlanet]
+		self.Target = &planet.Point
+	}
+}
+
 func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
@@ -249,7 +309,9 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		Angle:     0,
 	}
 	message := NONE
-	if self.Info.EnemiesInCombatRange > 0 || self.Info.EnemiesInThreatRange > 0 || self.Info.EnemiesInActiveThreatRange > 0 {
+	if self.Mission == STUPID_RUN_AWAY_META {
+		message, heading = self.stupidRunAwayMeta(gameMap)
+	} else if self.TotalEnemies > 0 {
 		message, heading = self.combat(gameMap)
 	} else if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetLookup[self.TargetPlanet]

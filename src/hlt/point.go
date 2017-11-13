@@ -75,6 +75,10 @@ func (self *Point) VectorTo(other *Point) Vector {
 	}
 }
 
+func (self *Point) Equals(other *Point) bool {
+	return self.X == other.X && self.Y == other.Y
+}
+
 func GetClosestPointOnLine(v1 *Point, v2 *Point, p *Point) Point {
 	e1 := v1.VectorTo(v2)
 	e2 := v1.VectorTo(p)

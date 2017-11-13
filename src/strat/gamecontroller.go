@@ -114,11 +114,22 @@ func (self *GameController) UpdateShipTurnInfos() {
 
 func (self *GameController) Act(turn int) []string {
 	self.UpdateShipTurnInfos()
+
+	if self.Info.ActivateStupidRunAwayMeta {
+		self.StupidRunAwayMeta()
+	}
+
 	if turn == 1 {
 		return self.GameStart()
 	} else {
 		self.AssignToPlanets()
 		return self.NormalTurn()
+	}
+}
+
+func (self *GameController) StupidRunAwayMeta() {
+	for _, sc := range self.ShipControllers {
+		sc.Mission = STUPID_RUN_AWAY_META
 	}
 }
 
@@ -185,6 +196,10 @@ func (self *GameController) NormalTurn() []string {
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
 		if ship.DockingStatus == hlt.UNDOCKED {
 			cmd := sc.Act(self.GameMap)
+			log.Println(cmd)
+			commandQueue = append(commandQueue, cmd)
+		} else if sc.Mission == STUPID_RUN_AWAY_META && ship.DockingStatus == hlt.DOCKED {
+			cmd := ship.Undock()
 			log.Println(cmd)
 			commandQueue = append(commandQueue, cmd)
 		}

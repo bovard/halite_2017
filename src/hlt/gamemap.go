@@ -23,6 +23,34 @@ type Player struct {
 	Ships []int /// preallocating for speed, assuming we cant have > 10k ships.
 }
 
+func (self *GameMap) GetNECorner() Point {
+	return Point {
+		X: float64(self.Width),
+		Y: 0,
+	} 
+}
+
+func (self *GameMap) GetSECorner() Point {
+	return Point {
+		X: float64(self.Width),
+		Y: float64(self.Height),
+	}
+}
+
+func (self *GameMap) GetSWCorner() Point {
+	return Point {
+		X: 0,
+		Y: float64(self.Height),
+	}
+}
+
+func (self *GameMap) GetNWCorner() Point {
+	return Point {
+		X: 0,
+		Y: 0,
+	}
+}
+
 func (self *GameMap) ParsePlayer(tokens []string) (Player, []string) {
 	playerId, _ := strconv.Atoi(tokens[0])
 	playerNumShips, _ := strconv.ParseFloat(tokens[1], 64)
