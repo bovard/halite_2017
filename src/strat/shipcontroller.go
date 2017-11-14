@@ -246,7 +246,6 @@ func (self *ShipController) UpdateInfo(gameMap *hlt.GameMap) {
 	self.Info = CreateShipTurnInfo(self.Ship, gameMap)
 }
 
-
 func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
 	heading := hlt.Heading{
 		Magnitude: 0,
@@ -261,7 +260,6 @@ func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Headi
 
 	return message, heading
 }
-
 
 func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 	ne := gameMap.GetNECorner()
@@ -282,11 +280,11 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 
 func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
 	/*
-	heading := hlt.Heading{
-		Magnitude: 0,
-		Angle:     0,
-	}
-	message := HIDE_WE_ARE_LOSING	
+		heading := hlt.Heading{
+			Magnitude: 0,
+			Angle:     0,
+		}
+		message := HIDE_WE_ARE_LOSING
 	*/
 	// TODO: head to corner
 
@@ -297,10 +295,9 @@ func (self *ShipController) IsTargetPlanetStillValid(gameMap *hlt.GameMap) (bool
 	message := NONE
 	valid := true
 
-
 	if self.TargetPlanet == -1 {
 		return false, message
-	} 
+	}
 
 	if _, ok := gameMap.PlanetLookup[self.TargetPlanet]; !ok {
 		return false, message
@@ -328,7 +325,6 @@ func (self *ShipController) IsTargetPlanetStillValid(gameMap *hlt.GameMap) (bool
 	}
 	return valid, message
 }
-
 
 func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
 	if self.Mission == MISSION_FOUND_PLANET {
@@ -379,7 +375,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			heading = self.MoveToPlanet(planet, gameMap)
 		}
 	} else if self.TargetPlanet != -1 {
-		valid, pmess := self.IsTargetPlanetStillValid(gameMap) 
+		valid, pmess := self.IsTargetPlanetStillValid(gameMap)
 		if !valid {
 			self.TargetPlanet = -1
 			log.Println("Cancelling assigned planet,", pmess)

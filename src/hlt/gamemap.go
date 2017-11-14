@@ -24,28 +24,28 @@ type Player struct {
 }
 
 func (self *GameMap) GetNECorner() Point {
-	return Point {
+	return Point{
 		X: float64(self.Width),
 		Y: 0,
-	} 
+	}
 }
 
 func (self *GameMap) GetSECorner() Point {
-	return Point {
+	return Point{
 		X: float64(self.Width),
 		Y: float64(self.Height),
 	}
 }
 
 func (self *GameMap) GetSWCorner() Point {
-	return Point {
+	return Point{
 		X: 0,
 		Y: float64(self.Height),
 	}
 }
 
 func (self *GameMap) GetNWCorner() Point {
-	return Point {
+	return Point{
 		X: 0,
 		Y: 0,
 	}
