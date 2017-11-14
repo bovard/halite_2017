@@ -206,6 +206,11 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 		if self.HeadingIsClear(int(hlt.SHIP_MAX_SPEED), heading.GetAngleInRads(), gameMap, self.Info.ClosestEnemyShip.Id) {
 			heading.Magnitude = int(hlt.SHIP_MAX_SPEED)
 		}
+	} else if self.Ship.FireNextTurn {
+		message = ALREADY_FIRED
+		dir := self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point)
+		targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED, dir)
+		heading = self.MoveToPoint(&targetPos, gameMap)
 	} else if self.Info.EnemiesInCombatRange > 1 {
 		message = MOVING_TO_BETTER_LOCAL
 		// free to move to opimal spot
@@ -276,15 +281,16 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 }
 
 func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+	/*
 	heading := hlt.Heading{
 		Magnitude: 0,
 		Angle:     0,
 	}
 	message := HIDE_WE_ARE_LOSING	
+	*/
+	// TODO: head to corner
 
-
-
-	return message, heading
+	return self.runAway(gameMap)
 }
 
 func (self *ShipController) IsTargetPlanetStillValid(gameMap *hlt.GameMap) (bool, ChlMessage) {

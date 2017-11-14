@@ -32,7 +32,7 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 
 	}
 
-	activateStupidRunAwayMeta := len(gameMap.Players) > 2 && gameMap.Turn > 100 && myShipCount * 3 < maxOpponentCount
+	activateStupidRunAwayMeta := len(gameMap.Players) > 2 && ((gameMap.Turn > 100 && myShipCount * 3 < maxOpponentCount) || (gameMap.Turn > 50 && myShipCount < 10))
 
 	return GameTurnInfo{
 		ShipCountDeltaToLeader:    myShipCount - maxOpponentCount,

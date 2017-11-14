@@ -116,11 +116,10 @@ func (self *GameController) UpdateShipTurnInfos() {
 func (self *GameController) Act(turn int) []string {
 	self.UpdateShipTurnInfos()
 
-	/*
 	if self.Info.ActivateStupidRunAwayMeta {
+		log.Println("Activating StupidRunAwayMetaa")
 		self.StupidRunAwayMeta()
 	}
-	*/
 
 	if turn == 1 {
 		return self.GameStart()
