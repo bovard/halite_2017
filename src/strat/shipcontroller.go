@@ -249,31 +249,30 @@ func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Headi
 	}
 	message := RUN_AWAY
 
+	dir := self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point)
+	targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED, dir)
+
+	heading = self.MoveToPoint(&targetPos, gameMap)
+
+	return message, heading
 }
 
 
-func nextCorner(current hlt.Point, gameMap *hlt.GameMap) {
-	if current.X == 0 && current.Y == 0 {
-		return hlt.Point {
-			X: gameMap.Width,
-			Y: 0,
-		} 
-	} else if current.X == gameMap.Width && current.Y == 0 {
-		return hlt.Point {
-			X: gameMap.Width,
-			Y: gameMap.Height,
-		}
-	} else if current.X == gameMap.Width && current.Y == gameMap.Height {
-		return hlt.Point {
-			X: 0,
-			Y: gameMap.Height,
-		}
-	} else if current.X == 0 && current.Y == gameMap.Height {
-		return hlt.Point {
-			X: 0,
-			Y: 0,
-		}
+func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
+	ne := gameMap.GetNECorner()
+	nw := gameMap.GetNWCorner()
+	se := gameMap.GetSECorner()
+	sw := gameMap.GetSWCorner()
+	if current.Equals(&ne) {
+		return nw
+	} else if current.Equals(&nw) {
+		return sw
+	} else if current.Equals(&sw) {
+		return se
+	} else if current.Equals(&se) {
+		return ne
 	}
+	return ne
 }
 
 func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
@@ -288,14 +287,57 @@ func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage,
 	return message, heading
 }
 
+func (self *ShipController) IsTargetPlanetStillValid(gameMap *hlt.GameMap) (bool, ChlMessage) {
+	message := NONE
+	valid := true
+
+
+	if self.TargetPlanet == -1 {
+		return false, message
+	} 
+
+	if _, ok := gameMap.PlanetLookup[self.TargetPlanet]; !ok {
+		return false, message
+	}
+
+	planet := gameMap.PlanetLookup[self.TargetPlanet]
+	planetDist := self.Ship.DistanceToCollision(&planet.Entity)
+
+	if self.Info.ClosestEnemyShipDistance < 2*hlt.SHIP_MAX_SPEED {
+		valid = false
+		log.Println("Cancelling assigned planet, enemy in min threshold")
+		message = CANCELLED_PLANET_ASSIGNMENT_MIN
+	} else if self.Info.ClosestEnemyShipDistance/2 < planetDist {
+		valid = false
+		log.Println("Cancelling assigned planet, enemy too close")
+		message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE
+	} else if planet.Owner > 0 && planet.Owner != gameMap.MyId {
+		valid = false
+		log.Println("Cancelling assigned planet, planet taken")
+		message = CANCELLED_PLANET_ASSIGNMENT_PLANET_TAKEN
+	} else if self.Info.EnemyClosestPlanetDist < hlt.SHIP_MAX_SPEED {
+		valid = false
+		log.Println("Cancelling assigned planet, enemy planet too close")
+		message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE_TO_ENEMEY_PLANET
+	}
+	return valid, message
+}
+
 
 func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
-	if self.MISSION == MISSION_FOUND_PLANET {
+	if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetLookup[self.TargetPlanet]
 		self.Target = &planet.Point
+	} else if self.TargetPlanet == -1 {
+		self.Target = &self.Info.ClosestEnemyShip.Point
 	} else if self.TargetPlanet != -1 {
-		planet := gameMap.PlanetLookup[self.TargetPlanet]
-		self.Target = &planet.Point
+		valid, _ := self.IsTargetPlanetStillValid(gameMap)
+		if valid {
+			planet := gameMap.PlanetLookup[self.TargetPlanet]
+			self.Target = &planet.Point
+		} else {
+			self.Target = &self.Info.ClosestEnemyShip.Point
+		}
 	}
 }
 
@@ -311,7 +353,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 	message := NONE
 	if self.Mission == STUPID_RUN_AWAY_META {
 		message, heading = self.stupidRunAwayMeta(gameMap)
-	} else if self.TotalEnemies > 0 {
+	} else if self.Info.TotalEnemies > 0 {
 		message, heading = self.combat(gameMap)
 	} else if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetLookup[self.TargetPlanet]
@@ -331,30 +373,14 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 			heading = self.MoveToPlanet(planet, gameMap)
 		}
 	} else if self.TargetPlanet != -1 {
-		planet := gameMap.PlanetLookup[self.TargetPlanet]
-		planetDist := self.Ship.Entity.DistanceToCollision(&planet.Entity)
-
-		if self.Info.ClosestEnemyShipDistance < 2*hlt.SHIP_MAX_SPEED {
+		valid, pmess := self.IsTargetPlanetStillValid(gameMap) 
+		if !valid {
 			self.TargetPlanet = -1
-			log.Println("Cancelling assigned planet, enemy in min threshold")
-			message = CANCELLED_PLANET_ASSIGNMENT_MIN
-			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-		} else if self.Info.ClosestEnemyShipDistance/2 < planetDist {
-			self.TargetPlanet = -1
-			log.Println("Cancelling assigned planet, enemy too close")
-			message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE
-			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-		} else if planet.Owner > 0 && planet.Owner != gameMap.MyId {
-			self.TargetPlanet = -1
-			log.Println("Cancelling assigned planet, planet taken")
-			message = CANCELLED_PLANET_ASSIGNMENT_PLANET_TAKEN
-			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
-		} else if self.Info.EnemyClosestPlanetDist < hlt.SHIP_MAX_SPEED {
-			self.TargetPlanet = -1
-			log.Println("Cancelling assigned planet, enemy planet too close")
-			message = CANCELLED_PLANET_ASSIGNMENT_TOO_CLOSE_TO_ENEMEY_PLANET
+			log.Println("Cancelling assigned planet,", pmess)
+			message = pmess
 			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
 		} else {
+			planet := gameMap.PlanetLookup[self.TargetPlanet]
 			log.Println("Continuing with assigned planet")
 			if self.Ship.CanDock(planet) {
 				log.Println("We can dock!")
