@@ -109,6 +109,7 @@ func (self *GameController) AssignToPlanets() {
 func (self *GameController) UpdateShipTurnInfos() {
 	for _, sc := range self.ShipControllers {
 		sc.UpdateInfo(self.GameMap)
+		sc.SetTarget(self.GameMap)
 	}
 }
 
@@ -168,15 +169,7 @@ func (self *GameController) GameStart() []string {
 func (self *GameController) GetSCsInOrder() []*ShipController {
 	scs := []*ShipController{}
 	for _, sc := range self.ShipControllers {
-		if sc.TargetPlanet != -1 {
-			p := self.GameMap.PlanetLookup[sc.TargetPlanet]
-			sc.Distance = sc.Ship.DistanceToCollision(&p.Entity)
-			if sc.Info.ClosestEnemyShipDistance*2 < sc.Distance {
-				sc.Distance = sc.Info.ClosestEnemyShipDistance
-			}
-		} else {
-			sc.Distance = sc.Info.ClosestEnemyShipDistance
-		}
+		sc.Distance = sc.Ship.SqDistanceTo(sc.Target)
 		scs = append(scs, sc)
 	}
 
