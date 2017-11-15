@@ -100,6 +100,10 @@ func (ship *Ship) Thrust(magnitude float64, angle float64) string {
 	return fmt.Sprintf("t %s %s %s", strconv.Itoa(ship.Id), strconv.Itoa(int(magnitude)), strconv.Itoa(int(angle)))
 }
 
+func (ship *Ship) IsAliveNextTurn() bool {
+	return self.Health - self.IncomingDamage > 0
+}
+
 func (ship *Ship) Dock(planet *Planet) string {
 	return fmt.Sprintf("d %s %s", strconv.Itoa(ship.Id), strconv.Itoa(planet.Id))
 }
