@@ -211,32 +211,17 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 		dir := self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point)
 		targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED, dir)
 		heading = self.MoveToPoint(&targetPos, gameMap)
-	} else if self.Info.EnemiesInCombatRange > 1 {
-		message = MOVING_TO_BETTER_LOCAL
-		// free to move to opimal spot
-		if math.Abs(self.Info.ClosestDockedEnemyShipDir-self.Ship.AngleTo(&self.Info.EnemiesByDist[1].Point)) < 2*math.Pi/3 {
-			v := self.Info.EnemiesByDist[1].VectorTo(&self.Info.ClosestEnemyShip.Point)
-			v = v.RescaleToMagFloat(hlt.SHIP_MAX_ATTACK_RANGE + .95)
-			p := self.Info.ClosestEnemyShip.AddVector(&v)
-			heading = self.MoveToPoint(&p, gameMap)
-		} else {
-			fromCloset := self.Info.ClosestEnemyShip.VectorTo(&self.Ship.Point)
-			fromOther := self.Info.EnemiesByDist[1].VectorTo(&self.Ship.Point)
-			v := fromCloset.Add(&fromOther)
-			v = v.RescaleToMagFloat(hlt.SHIP_MAX_SPEED + .1)
-			p := self.Ship.AddVector(&v)
-			heading = self.MoveToPoint(&p, gameMap)
-		}
-	} else if self.Info.EnemiesInCombatRange == 1 && self.Info.EnemiesInThreatRange == 1 {
-		message = MOVING_TO_MAX_RANGE
-		v := self.Info.ClosestEnemyShip.VectorTo(&self.Ship.Point)
-		v = v.RescaleToMagFloat(hlt.SHIP_MAX_SPEED + .1)
-		p := self.Info.ClosestEnemyShip.AddVector(&v)
-		heading = self.MoveToPoint(&p, gameMap)
 	} else {
 		log.Println("TOTAL enemies/allies", self.Info.TotalEnemies, self.Info.TotalAllies)
 		message = MOVING_TOWARD_ENEMY
-		heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
+		enemyShipVel := self.Info.ClosestEnemyShip.Vel
+		if enemyShipVel.Magnitude() > 0 {
+			newV := enemyShipVel.RescaleToMag(enemyShipVel.Magnitude + hlt.SHIP_MAX_ATTACK_RANGE + 1)
+			targetP := self.Info.ClosestEnemyShip.AddVector(&newV)
+			heading = self.MoveToPoint(&targetP, gameMap)
+		} else {
+			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
+		}
 	}
 
 	return message, heading
