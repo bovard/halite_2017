@@ -191,7 +191,7 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 	var message ChlMessage
 	var heading hlt.Heading
 
-	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShip.IsAliveNextTurn() && self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance+.5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
+	canKillSuicideOnProduction := self.Info.ClosestDockedEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.Info.ClosestDockedEnemyShip.IsAliveNextTurn() && self.HeadingIsClear(int(self.Info.ClosestDockedEnemyShipDistance+.5), self.Info.ClosestDockedEnemyShipDir, gameMap, self.Info.ClosestDockedEnemyShip.Id)
 	canKillSuicideOnNearestEnemy := self.Info.ClosestEnemyShip.IsAliveNextTurn() && self.Info.ClosestEnemyShipDistance < hlt.SHIP_MAX_SPEED && self.HeadingIsClear(int(self.Info.ClosestEnemyShipDistance+.5), self.Info.ClosestEnemyShipDir, gameMap, self.Info.ClosestEnemyShip.Id)
 
 	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemyShip.Health > hlt.SHIP_DAMAGE/2 {
@@ -215,8 +215,8 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 		log.Println("TOTAL enemies/allies", self.Info.TotalEnemies, self.Info.TotalAllies)
 		message = MOVING_TOWARD_ENEMY
 		enemyShipVel := self.Info.ClosestEnemyShip.Vel
-		if enemyShipVel.Magnitude() > 0 {
-			newV := enemyShipVel.RescaleToMag(enemyShipVel.Magnitude + hlt.SHIP_MAX_ATTACK_RANGE + 1)
+		if enemyShipVel.Magnitude() > 0 && self.Info.ClosestEnemyShip.IsAliveNextTurn() && self.Info.TotalAllies + 2 <= self.Info.TotalEnemies {
+			newV := enemyShipVel.RescaleToMag(int(enemyShipVel.Magnitude() + .5) + int(hlt.SHIP_MAX_ATTACK_RANGE) + 1)
 			targetP := self.Info.ClosestEnemyShip.AddVector(&newV)
 			heading = self.MoveToPoint(&targetP, gameMap)
 		} else {
