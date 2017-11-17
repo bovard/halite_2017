@@ -341,7 +341,7 @@ func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, h
 		vAway := self.Info.ClosestNonDockedEnemyShip.VectorTo(&self.Ship.Point)
 		vAway = vAway.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
 		toGo := vToTarget.Add(&vAway)
-		if self.Info.AlliedClosestPlanetDist < 1.5 * self.Info.EnemyClosestPlanetDist {
+		if self.Info.AlliedClosestPlanetDist < 1000 && self.Info.AlliedClosestPlanetDist < 1.5 * self.Info.EnemyClosestPlanetDist {
 			awayFromOurP := self.Info.AlliedClosestPlanet.VectorTo(&self.Ship.Point)
 			awayFromOurP = awayFromOurP.RescaleToMag((int(hlt.SHIP_MAX_SPEED)))
 			toGo = awayFromOurP.Add(&vAway)

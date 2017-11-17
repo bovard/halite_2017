@@ -79,7 +79,7 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if (sc.ShipNum == 5 && self.Info.NumOpponents == 1) || sc.ShipNum % 17 == 0 {
+		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum % 17 == 0 {
 			if self.Info.NumEnemyPlanets == 0 {
 				sc.Mission = MISSION_NORMAL
 			} else {
