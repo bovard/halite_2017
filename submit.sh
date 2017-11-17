@@ -1,2 +1,2 @@
 zip -r -X Archive.zip MyBot.go src/
-hlt bot -b Archive.zip
+go build MyBot.go && hlt bot -b Archive.zip
