@@ -187,7 +187,7 @@ func (self *ShipController) moveTo(pointTest func(*hlt.Point, float64, hlt.Point
 	return heading
 }
 
-func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+func (self *ShipController) combat(gameMap *hlt.GameMap, turnComm *TurnComm) (ChlMessage, hlt.Heading) {
 	var message ChlMessage
 	var heading hlt.Heading
 
@@ -215,12 +215,21 @@ func (self *ShipController) combat(gameMap *hlt.GameMap) (ChlMessage, hlt.Headin
 		log.Println("TOTAL enemies/allies", self.Info.TotalEnemies, self.Info.TotalAllies)
 		message = MOVING_TOWARD_ENEMY
 		enemyShipVel := self.Info.ClosestEnemyShip.Vel
-		if enemyShipVel.Magnitude() > 0 && self.Info.ClosestEnemyShip.IsAliveNextTurn() && self.Info.TotalAllies + 2 <= self.Info.TotalEnemies {
+
+		
+		if turnComm.Chasing[self.Info.ClosestEnemyShip.Id] >= 4 && self.Info.ClosestDockedEnemyShipDistance < 100 {
+			message = TOO_MANY_CHASING_MOVING_TOWARD_DOCKED_ENEMY
+			heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
+		} else if enemyShipVel.Magnitude() > 0 && self.Info.ClosestEnemyShip.IsAliveNextTurn() && self.Info.TotalAllies + 2 <= self.Info.TotalEnemies {
+			message = MOVING_TO_CLOSEST_ENEMY_MAX_RANGE 
 			newV := enemyShipVel.RescaleToMag(int(enemyShipVel.Magnitude() + .5) + int(hlt.SHIP_MAX_ATTACK_RANGE) + 1)
 			targetP := self.Info.ClosestEnemyShip.AddVector(&newV)
 			heading = self.MoveToPoint(&targetP, gameMap)
+			turnComm.Chasing[self.Info.ClosestEnemyShip.Id] = turnComm.Chasing[self.Info.ClosestEnemyShip.Id] + 1
 		} else {
+			message = MOVING_TOWARD_ENEMY
 			heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
+			turnComm.Chasing[self.Info.ClosestEnemyShip.Id] = turnComm.Chasing[self.Info.ClosestEnemyShip.Id] + 1
 		}
 	}
 
@@ -328,7 +337,7 @@ func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
 	}
 }
 
-func (self *ShipController) Act(gameMap *hlt.GameMap) string {
+func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string {
 
 	log.Println("Ship ", self.Id, " Act. Planet is ", self.TargetPlanet)
 	log.Println("ClosestEnemy is ", self.Info.ClosestEnemyShipDistance)
@@ -338,10 +347,15 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 		Angle:     0,
 	}
 	message := NONE
+
+	if _, ok := turnComm.Chasing[self.Info.ClosestEnemyShip.Id]; !ok {
+		turnComm.Chasing[self.Info.ClosestEnemyShip.Id] = 0
+	}
+
 	if self.Mission == STUPID_RUN_AWAY_META {
 		message, heading = self.stupidRunAwayMeta(gameMap)
 	} else if self.Info.TotalEnemies > 0 {
-		message, heading = self.combat(gameMap)
+		message, heading = self.combat(gameMap, turnComm)
 	} else if self.Mission == MISSION_FOUND_PLANET {
 		planet := gameMap.PlanetLookup[self.TargetPlanet]
 		log.Println("Continuing with assigned planet")
@@ -384,8 +398,12 @@ func (self *ShipController) Act(gameMap *hlt.GameMap) string {
 				heading = self.MoveToPlanet(planet, gameMap)
 			}
 		}
+	} else if self.Info.ClosestDockedEnemyShipDistance < 200 && turnComm.Chasing[self.Info.ClosestEnemyShip.Id] > 6 {
+		message = TOO_MANY_CHASING_FAR_AWAY_MOVING_TO_DOCKED_ENEMY
+		heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
 	} else {
 		message = MOVING_TOWARD_ENEMY
+		turnComm.Chasing[self.Info.ClosestEnemyShip.Id] = turnComm.Chasing[self.Info.ClosestEnemyShip.Id] + 1
 		heading = self.MoveToShip(self.Info.ClosestEnemyShip, gameMap)
 	}
 	log.Println(heading)

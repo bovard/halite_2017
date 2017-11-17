@@ -122,11 +122,11 @@ func (self *GameController) Act(turn int) []string {
 	}
 
 	if turn == 1 {
-		return self.GameStart()
+		self.GameStart()
 	} else {
 		self.AssignToPlanets()
-		return self.NormalTurn()
 	}
+	return self.ExecuteShipTurn()
 }
 
 func (self *GameController) StupidRunAwayMeta() {
@@ -135,7 +135,7 @@ func (self *GameController) StupidRunAwayMeta() {
 	}
 }
 
-func (self *GameController) GameStart() []string {
+func (self *GameController) GameStart() {
 	bestTargetDist := 1000000.0
 	targetPlanet := -1
 	for _, id := range self.GameMap.MyShips {
@@ -161,8 +161,6 @@ func (self *GameController) GameStart() []string {
 	} else {
 		self.AssignToPlanets()
 	}
-
-	return self.NormalTurn()
 }
 
 func (self *GameController) GetSCsInOrder() []*ShipController {
@@ -177,9 +175,10 @@ func (self *GameController) GetSCsInOrder() []*ShipController {
 	return scs
 }
 
-func (self *GameController) NormalTurn() []string {
+func (self *GameController) ExecuteShipTurn() []string {
 	commandQueue := []string{}
 
+	turnComm := GetTurnComm()
 	scs := self.GetSCsInOrder()
 
 	for _, sc := range scs {
@@ -189,7 +188,7 @@ func (self *GameController) NormalTurn() []string {
 		log.Println("Ship is located at ", ship.Point)
 		log.Println("With Vel ", ship.Vel, " and mag ", ship.Vel.Magnitude())
 		if ship.DockingStatus == hlt.UNDOCKED {
-			cmd := sc.Act(self.GameMap)
+			cmd := sc.Act(self.GameMap, &turnComm)
 			log.Println(cmd)
 			commandQueue = append(commandQueue, cmd)
 		} else if sc.Mission == STUPID_RUN_AWAY_META && ship.DockingStatus == hlt.DOCKED {
