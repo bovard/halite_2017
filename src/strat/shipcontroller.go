@@ -12,6 +12,7 @@ const (
 	MISSION_NORMAL Mission = iota
 	MISSION_FOUND_PLANET
 	STUPID_RUN_AWAY_META
+	MISSION_RUSH_AND_DISTRACT
 )
 
 type ShipController struct {
@@ -215,15 +216,17 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, turnComm *TurnComm) (Ch
 	} else if self.Ship.FireNextTurn {
 		message = ALREADY_FIRED
 		dir := self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point)
-		targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED, dir)
+		targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED + 1, dir)
 		heading = self.MoveToPoint(&targetPos, gameMap)
 	} else {
 		log.Println("TOTAL enemies/allies", self.Info.TotalEnemies, self.Info.TotalAllies)
 		message = MOVING_TOWARD_ENEMY
 		enemyShipVel := self.Info.ClosestEnemyShip.Vel
-
+		log.Println("TOTAL CHASING",turnComm.Chasing[self.Info.ClosestEnemyShip.Id])
 		
-		if turnComm.Chasing[self.Info.ClosestEnemyShip.Id] >= 4 && self.Info.ClosestDockedEnemyShipDistance < 100 {
+		log.Println("SHOULD NOT CHASE?", turnComm.Chasing[self.Info.ClosestEnemyShip.Id], "?>=4 AND", self.Info.ClosestDockedEnemyShipDistance, "?< 200")
+		if turnComm.Chasing[self.Info.ClosestEnemyShip.Id] >= 4 && self.Info.ClosestDockedEnemyShipDistance < 200 {
+			log.Println("Too many chasing, going for docked ship")
 			message = TOO_MANY_CHASING_MOVING_TOWARD_DOCKED_ENEMY
 			heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
 		} else if enemyShipVel.Magnitude() > 0 && self.Info.ClosestEnemyShip.IsAliveNextTurn() && self.Info.TotalAllies + 2 <= self.Info.TotalEnemies {
@@ -277,6 +280,77 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 	}
 	return ne
 }
+
+
+func (self *ShipController) SetRushPlanet(gameMap *hlt.GameMap) {
+	mins := []float64{10000,10000,10000,10000}
+	minID := []int{-1,-1,-1,-1}
+	maxs := []float64{0,0,0,0}
+	maxID := []int{-1,-1,-1,-1}
+	for _, pid := range(gameMap.Planets) {
+		p := gameMap.PlanetLookup[pid]
+		if p.Owner == gameMap.MyId {
+			for _, tid := range(gameMap.Planets) {
+				t := gameMap.PlanetLookup[tid]
+				if t.Owner == gameMap.MyId {
+					continue
+				}
+				d := p.SqDistanceTo(&t.Point)
+				if d < mins[t.Owner] {
+					mins[t.Owner] = d
+					minID[t.Owner] = t.Id
+				} 
+				if d > maxs[t.Owner] {
+					maxs[t.Owner] = d
+					maxID[t.Owner] = t.Id
+				}
+			}
+
+		}
+	}
+	minIdx := -1
+	minVal := 10000.0
+	for i := 0; i < 4; i++ {
+		if mins[i] < minVal {
+			minVal = mins[i]
+			minIdx = i
+		}
+	}
+
+	self.TargetPlanet = maxID[minIdx]
+}
+
+
+func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
+	heading := hlt.Heading{
+		Magnitude: 0,
+		Angle:     0,
+	}
+	message := RUSH
+	p := gameMap.PlanetLookup[self.TargetPlanet]
+	dToTarget := self.Ship.DistanceToCollision(&p.Entity)
+	vToTarget := self.Ship.VectorTo(&p.Point)
+	vToTarget = vToTarget.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
+
+	if self.Info.TotalEnemies > 0 {
+		message = RUSH_AVOIDING_ENEMY
+		vAway := self.Info.ClosestNonDockedEnemyShip.VectorTo(&self.Ship.Point)
+		vAway = vAway.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
+		toGo := vToTarget.Add(&vAway)
+		toGo = toGo.Add(&vAway)
+		toGo = toGo.RescaleToMag(int(hlt.SHIP_MAX_SPEED) + 1)
+		targetPos := self.Ship.AddVector(&toGo)
+		heading = self.MoveToPoint(&targetPos, gameMap)
+	} else if dToTarget < 20 && self.Info.ClosestDockedEnemyShipDistance < 100 {
+		message = RUSH_KILLING_DOCKED
+		heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
+	} else {
+		heading = self.MoveToPlanet(p, gameMap)
+	}
+
+	return message, heading
+}
+
 
 func (self *ShipController) stupidRunAwayMeta(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
 	/*
@@ -354,12 +428,16 @@ func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string
 	}
 	message := NONE
 
+	log.Println("Looking for", self.Info.ClosestEnemyShip.Id, "in", turnComm.Chasing)
 	if _, ok := turnComm.Chasing[self.Info.ClosestEnemyShip.Id]; !ok {
+		log.Println("didn't find it, setting to zero")
 		turnComm.Chasing[self.Info.ClosestEnemyShip.Id] = 0
 	}
 
 	if self.Mission == STUPID_RUN_AWAY_META {
 		message, heading = self.stupidRunAwayMeta(gameMap)
+	} else if self.Mission == MISSION_RUSH_AND_DISTRACT {
+		message, heading = self.rushAndDistract(gameMap)	
 	} else if self.Info.TotalEnemies > 0 {
 		message, heading = self.combat(gameMap, turnComm)
 	} else if self.Mission == MISSION_FOUND_PLANET {
@@ -404,7 +482,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string
 				heading = self.MoveToPlanet(planet, gameMap)
 			}
 		}
-	} else if self.Info.ClosestDockedEnemyShipDistance < 200 && turnComm.Chasing[self.Info.ClosestEnemyShip.Id] > 6 {
+	} else if self.Info.ClosestDockedEnemyShipDistance < 200 && turnComm.Chasing[self.Info.ClosestEnemyShip.Id] > 4 {
 		message = TOO_MANY_CHASING_FAR_AWAY_MOVING_TO_DOCKED_ENEMY
 		heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
 	} else {
@@ -421,5 +499,6 @@ func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string
 		self.Ship.NextVel = heading.ToVelocity()
 		s.NextVel = heading.ToVelocity()
 	}
+	log.Println("turn complete heading:", heading, "message:", message)
 	return heading.ToMoveCmd(self.Ship, int(message))
 }

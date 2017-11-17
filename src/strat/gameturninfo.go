@@ -18,11 +18,15 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 
 	maxOpponentCount := 0
 	minOpponentCount := 1000000
+	numOpponents := 0
 	for idx := range gameMap.Players {
 		if idx == myId {
 			continue
 		}
 		numShips := len(gameMap.Players[idx].Ships)
+		if numShips > 0 {
+			numOpponents += 1
+		}
 		if numShips > maxOpponentCount {
 			maxOpponentCount = numShips
 		}
@@ -32,7 +36,7 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 
 	}
 
-	activateStupidRunAwayMeta := len(gameMap.Players) > 2 && ((gameMap.Turn > 100 && myShipCount*3 < maxOpponentCount) || (gameMap.Turn > 50 && myShipCount < 10))
+	activateStupidRunAwayMeta := numOpponents > 1 && ((gameMap.Turn > 100 && myShipCount*3 < maxOpponentCount) || (gameMap.Turn > 50 && (myShipCount < 10 && maxOpponentCount > 30)))
 
 	return GameTurnInfo{
 		ShipCountDeltaToLeader:    myShipCount - maxOpponentCount,

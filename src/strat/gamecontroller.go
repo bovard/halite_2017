@@ -79,6 +79,14 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
+		if sc.ShipNum == 5 || sc.ShipNum % 17 == 0 {
+			if sc.TargetPlanet == -1 {
+				sc.SetRushPlanet(self.GameMap)
+			}
+			sc.Mission = MISSION_RUSH_AND_DISTRACT
+			continue
+		}
+
 		log.Println("Looking to make assignment for ship ", sc.Id)
 		if sc.TargetPlanet != -1 {
 			log.Println("already assigned to ", sc.TargetPlanet)
@@ -126,7 +134,7 @@ func (self *GameController) Act(turn int) []string {
 	} else {
 		self.AssignToPlanets()
 	}
-	return self.ExecuteShipTurn()
+	return self.ExecuteShipTurn(turn)
 }
 
 func (self *GameController) StupidRunAwayMeta() {
@@ -175,14 +183,17 @@ func (self *GameController) GetSCsInOrder() []*ShipController {
 	return scs
 }
 
-func (self *GameController) ExecuteShipTurn() []string {
+func (self *GameController) ExecuteShipTurn(turn int) []string {
 	commandQueue := []string{}
 
 	turnComm := GetTurnComm()
 	scs := self.GetSCsInOrder()
 
+	log.Println("Chasing is", turnComm.Chasing)
+
 	for _, sc := range scs {
 		ship := sc.Ship
+		log.Println("Ship", sc.Id, "turn", turn, "with ship num",sc.ShipNum)
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
 		log.Println(ship)
 		log.Println("Ship is located at ", ship.Point)
@@ -197,5 +208,8 @@ func (self *GameController) ExecuteShipTurn() []string {
 			commandQueue = append(commandQueue, cmd)
 		}
 	}
+
+	log.Println("Chasing is now", turnComm.Chasing)
+
 	return commandQueue
 }
