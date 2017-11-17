@@ -10,6 +10,7 @@ type GameTurnInfo struct {
 	MaxOpponentShipCount      int
 	MinOpponentShipCount      int
 	ActivateStupidRunAwayMeta bool
+	NumEnemyPlanets           int
 }
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
@@ -36,6 +37,14 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 
 	}
 
+	numEnemyPlanets := 0
+	for _, p := range gameMap.PlanetLookup {
+		if p.Owner != gameMap.MyId {
+			numEnemyPlanets ++
+		}
+
+	}
+
 	activateStupidRunAwayMeta := numOpponents > 1 && ((gameMap.Turn > 100 && myShipCount*3 < maxOpponentCount) || (gameMap.Turn > 50 && (myShipCount < 10 && maxOpponentCount > 30)))
 
 	return GameTurnInfo{
@@ -44,5 +53,6 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 		MaxOpponentShipCount:      maxOpponentCount,
 		MinOpponentShipCount:      minOpponentCount,
 		ActivateStupidRunAwayMeta: activateStupidRunAwayMeta,
+		NumEnemyPlanets: 		   numEnemyPlanets,
 	}
 }

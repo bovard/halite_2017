@@ -345,7 +345,20 @@ func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, h
 		message = RUSH_KILLING_DOCKED
 		heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
 	} else {
-		heading = self.MoveToPlanet(p, gameMap)
+		toP := self.Ship.AngleTo(&p.Point)
+		newAng := toP - math.Pi/4
+		if self.Id % 2 == 0 {
+			newAng = toP + math.Pi/4
+
+		}
+		if self.HeadingIsClear(int(hlt.SHIP_MAX_SPEED), newAng, gameMap, -1) {
+			heading = hlt.Heading{
+				Magnitude: int(hlt.SHIP_MAX_SPEED),
+				Angle: int(hlt.RadToDeg(newAng)),
+			}
+		} else {
+			heading = self.MoveToPlanet(p, gameMap)
+		}
 	}
 
 	return message, heading

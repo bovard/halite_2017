@@ -80,11 +80,15 @@ func (self *GameController) AssignToPlanets() {
 
 	for _, sc := range self.ShipControllers {
 		if sc.ShipNum == 5 || sc.ShipNum % 17 == 0 {
-			if sc.TargetPlanet == -1 {
-				sc.SetRushPlanet(self.GameMap)
+			if self.Info.NumEnemyPlanets == 0 {
+				sc.Mission = MISSION_NORMAL
+			} else {
+				if sc.TargetPlanet == -1 {
+					sc.SetRushPlanet(self.GameMap)
+				}
+				sc.Mission = MISSION_RUSH_AND_DISTRACT
+				continue
 			}
-			sc.Mission = MISSION_RUSH_AND_DISTRACT
-			continue
 		}
 
 		log.Println("Looking to make assignment for ship ", sc.Id)
