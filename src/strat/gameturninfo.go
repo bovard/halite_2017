@@ -11,6 +11,7 @@ type GameTurnInfo struct {
 	MinOpponentShipCount      int
 	ActivateStupidRunAwayMeta bool
 	NumEnemyPlanets           int
+	NumOpponents              int
 }
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
@@ -54,5 +55,6 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 		MinOpponentShipCount:      minOpponentCount,
 		ActivateStupidRunAwayMeta: activateStupidRunAwayMeta,
 		NumEnemyPlanets: 		   numEnemyPlanets,
+		NumOpponents:              numOpponents,
 	}
 }

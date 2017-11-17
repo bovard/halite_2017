@@ -283,16 +283,17 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 
 
 func (self *ShipController) SetRushPlanet(gameMap *hlt.GameMap) {
-	mins := []float64{10000,10000,10000,10000}
-	minID := []int{-1,-1,-1,-1}
-	maxs := []float64{0,0,0,0}
-	maxID := []int{-1,-1,-1,-1}
+	mins := []float64{10000,10000,10000,10000,10000}
+	minID := []int{-1,-1,-1,-1,-1}
+	maxs := []float64{0,0,0,0,0}
+	maxID := []int{-1,-1,-1,-1,-1}
+	log.Println("mins/maxs", mins, maxs)
 	for _, pid := range(gameMap.Planets) {
 		p := gameMap.PlanetLookup[pid]
 		if p.Owner == gameMap.MyId {
 			for _, tid := range(gameMap.Planets) {
 				t := gameMap.PlanetLookup[tid]
-				if t.Owner == gameMap.MyId {
+				if t.Owner == gameMap.MyId || t.Owner == 0 {
 					continue
 				}
 				d := p.SqDistanceTo(&t.Point)
@@ -308,6 +309,8 @@ func (self *ShipController) SetRushPlanet(gameMap *hlt.GameMap) {
 
 		}
 	}
+	log.Println("mins/maxs", mins, maxs)
+	log.Println("minID/maxID",minID,maxID)
 	minIdx := -1
 	minVal := 10000.0
 	for i := 0; i < 4; i++ {
@@ -331,6 +334,7 @@ func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, h
 	dToTarget := self.Ship.DistanceToCollision(&p.Entity)
 	vToTarget := self.Ship.VectorTo(&p.Point)
 	vToTarget = vToTarget.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
+	log.Println("Ship", self.Ship.Id, "rushing to", self.TargetPlanet)
 
 	if self.Info.TotalEnemies > 0 {
 		message = RUSH_AVOIDING_ENEMY

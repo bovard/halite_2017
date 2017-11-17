@@ -79,12 +79,17 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if sc.ShipNum == 5 || sc.ShipNum % 17 == 0 {
+		if (sc.ShipNum == 5 && self.Info.NumOpponents == 1) || sc.ShipNum % 17 == 0 {
 			if self.Info.NumEnemyPlanets == 0 {
 				sc.Mission = MISSION_NORMAL
 			} else {
 				if sc.TargetPlanet == -1 {
 					sc.SetRushPlanet(self.GameMap)
+				} else {
+					p := self.GameMap.PlanetLookup[sc.TargetPlanet]
+					if p.Owner == 0 || p.Owner == self.GameMap.MyId {
+						sc.SetRushPlanet(self.GameMap)
+					}
 				}
 				sc.Mission = MISSION_RUSH_AND_DISTRACT
 				continue
