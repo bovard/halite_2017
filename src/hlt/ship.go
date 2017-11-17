@@ -101,7 +101,7 @@ func (ship *Ship) Thrust(magnitude float64, angle float64) string {
 }
 
 func (self *Ship) IsAliveNextTurn() bool {
-	return self.Health - self.IncomingDamage > 0
+	return self.Health-self.IncomingDamage > 0
 }
 
 func (ship *Ship) Dock(planet *Planet) string {

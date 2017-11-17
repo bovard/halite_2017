@@ -79,7 +79,7 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum % 17 == 0 {
+		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum%17 == 0 {
 			if self.Info.NumEnemyPlanets == 0 {
 				sc.Mission = MISSION_NORMAL
 			} else {
@@ -202,7 +202,7 @@ func (self *GameController) ExecuteShipTurn(turn int) []string {
 
 	for _, sc := range scs {
 		ship := sc.Ship
-		log.Println("Ship", sc.Id, "turn", turn, "with ship num",sc.ShipNum)
+		log.Println("Ship", sc.Id, "turn", turn, "with ship num", sc.ShipNum)
 		log.Println(sc.Id, "is assigned to planet ", sc.TargetPlanet)
 		log.Println(ship)
 		log.Println("Ship is located at ", ship.Point)

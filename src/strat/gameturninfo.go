@@ -14,7 +14,7 @@ type GameTurnInfo struct {
 	NumEnemies                int
 }
 
-func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
+func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnInfo {
 	myId := gameMap.MyId
 	myShipCount := len(gameMap.Players[myId].Ships)
 
@@ -41,7 +41,7 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 	numEnemyPlanets := 0
 	for _, p := range gameMap.PlanetLookup {
 		if p.Owner != gameMap.MyId {
-			numEnemyPlanets ++
+			numEnemyPlanets++
 		}
 
 	}
@@ -54,7 +54,7 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap) GameTurnInfo {
 		MaxOpponentShipCount:      maxOpponentCount,
 		MinOpponentShipCount:      minOpponentCount,
 		ActivateStupidRunAwayMeta: activateStupidRunAwayMeta,
-		NumEnemyPlanets: 		   numEnemyPlanets,
+		NumEnemyPlanets:           numEnemyPlanets,
 		NumEnemies:                numOpponents,
 	}
 }

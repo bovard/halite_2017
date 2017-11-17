@@ -477,8 +477,6 @@ func ExampleShipsFromGame2440091WillCollideWith() {
 	// true
 }
 
-
-
 func ExampleShipsFromGame2445100WillCollideWith() {
 	// replay: 2440091
 	p1 := Point{
