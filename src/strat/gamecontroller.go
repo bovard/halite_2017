@@ -18,9 +18,9 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 	gameMap.UpdateShipsFromHistory(self.GameMap)
 	gameMap.LookaheadCalculations()
 
+	self.Info = CreateGameTurnInfo(gameMap, self.GameMap)
 	self.GameMap = gameMap
 
-	self.Info = CreateGameTurnInfo(gameMap)
 
 	for _, id := range gameMap.MyShips {
 		ship := gameMap.ShipLookup[id]
@@ -137,6 +137,10 @@ func (self *GameController) Act(turn int) []string {
 		log.Println("Activating StupidRunAwayMetaa")
 		self.StupidRunAwayMeta()
 	}
+	if self.Info.PrimaryOpponentDied {
+		log.Println("activating normal meta")
+		self.NormalMeta()
+	}
 
 	if turn == 1 {
 		self.GameStart()
@@ -149,6 +153,12 @@ func (self *GameController) Act(turn int) []string {
 func (self *GameController) StupidRunAwayMeta() {
 	for _, sc := range self.ShipControllers {
 		sc.Mission = STUPID_RUN_AWAY_META
+	}
+}
+
+func (self *GameController) NormalMeta() {
+	for _, sc := range self.ShipControllers {
+		sc.Mission = MISSION_NORMAL
 	}
 }
 

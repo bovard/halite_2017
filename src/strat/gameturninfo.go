@@ -12,11 +12,17 @@ type GameTurnInfo struct {
 	ActivateStupidRunAwayMeta bool
 	NumEnemyPlanets           int
 	NumEnemies                int
+	PrimaryOpponentDied       bool
 }
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnInfo {
 	myId := gameMap.MyId
 	myShipCount := len(gameMap.Players[myId].Ships)
+
+	shipDiff := len(oldGameMap.EnemyShips) - len(gameMap.EnemyShips) 
+	shipPer := float64(len(gameMap.EnemyShips)) / float64(len(oldGameMap.EnemyShips))
+
+	primaryOpponentDied := shipDiff > 20 && shipPer < .3
 
 	maxOpponentCount := 0
 	minOpponentCount := 1000000
@@ -56,5 +62,6 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 		ActivateStupidRunAwayMeta: activateStupidRunAwayMeta,
 		NumEnemyPlanets:           numEnemyPlanets,
 		NumEnemies:                numOpponents,
+		PrimaryOpponentDied:       primaryOpponentDied,
 	}
 }
