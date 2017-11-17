@@ -83,6 +83,9 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 		if s.Id == target {
 			continue
 		}
+		if !s.IsAliveNextTurn() {
+			continue
+		}
 		if self.Ship.WillCollideWith(&s.Entity, &v) {
 			return false
 		}
@@ -96,7 +99,6 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 				}
 			}
 			if s.Vel.Magnitude() > 0 {
-				log.Println("DOING IT")
 				nv = v.Subtract(&s.Vel)
 				if self.Ship.WillCollideWith(&s.Entity, &nv) {
 					return false
@@ -107,6 +109,10 @@ func (self *ShipController) HeadingIsClear(mag int, angle float64, gameMap *hlt.
 	}
 	for _, s := range self.Info.PossibleAlliedShipCollisions {
 		log.Println("Comparing with friendly ship ", s.Id, " at loc ", s.Point, " with Vel ", s.NextVel)
+		if !s.IsAliveNextTurn() {
+			log.Println("It's not alive next turn!")
+			continue
+		}
 		if self.Ship.Id == s.Id {
 			continue
 		}
