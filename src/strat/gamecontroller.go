@@ -119,7 +119,7 @@ func (self *GameController) AssignToPlanets() {
 			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader != 0 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
-			if sc.ShipNum < 15 && self.Info.MinEnemyDist > 50 {
+			if sc.ShipNum < 15 && sc.ShipNum > 3 && self.Info.MinEnemyDist > 50 {
 				sc.Mission = MISSION_FOUND_PLANET
 			}
 		}
