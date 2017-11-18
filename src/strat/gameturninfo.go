@@ -2,6 +2,7 @@ package strat
 
 import (
 	"../hlt"
+	"math"
 )
 
 type GameTurnInfo struct {
@@ -13,6 +14,7 @@ type GameTurnInfo struct {
 	NumEnemyPlanets           int
 	NumEnemies                int
 	PrimaryOpponentDied       bool
+	MinEnemyDist              float64
 }
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnInfo {
@@ -45,12 +47,21 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 	}
 
 	numEnemyPlanets := 0
+	minEnemyDist := 10000.0
 	for _, p := range gameMap.PlanetLookup {
 		if p.Owner != gameMap.MyId {
 			numEnemyPlanets++
 		}
-
+		if p.Owner == gameMap.MyId {
+			for _, s := range gameMap.ShipLookup {
+				d := p.SqDistanceTo(&s.Point)
+				if d < minEnemyDist {
+					minEnemyDist = d
+				}
+			}
+		}
 	}
+	minEnemyDist = math.Sqrt(minEnemyDist)
 
 	activateStupidRunAwayMeta := numOpponents > 1 && ((gameMap.Turn > 100 && myShipCount*3 < maxOpponentCount) || (gameMap.Turn > 50 && (myShipCount < 10 && maxOpponentCount > 30)))
 
@@ -63,5 +74,6 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 		NumEnemyPlanets:           numEnemyPlanets,
 		NumEnemies:                numOpponents,
 		PrimaryOpponentDied:       primaryOpponentDied,
+		MinEnemyDist: 			   minEnemyDist,
 	}
 }
