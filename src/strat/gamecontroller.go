@@ -80,6 +80,9 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
+		if (sc.Mission == STUPID_RUN_AWAY_META) {
+			continue
+		}
 		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum%17 == 0 {
 			if self.Info.NumEnemyPlanets == 0 {
 				sc.Mission = MISSION_NORMAL
