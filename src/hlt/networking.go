@@ -66,6 +66,7 @@ func (c *Connection) UpdateMap(turn int) GameMap {
 		PlanetLookup: make(map[int]*Planet),
 		ShipLookup:   make(map[int]*Ship),
 	}
+	log.Println(gameString)
 	gameMap.ParseGameString(gameString)
 	log.Println("    Parsed map")
 	return gameMap

@@ -282,19 +282,25 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 }
 
 func (self *ShipController) SetRushPlanet(gameMap *hlt.GameMap) {
-	mins := []float64{10000, 10000, 10000, 10000, 10000}
-	minID := []int{-1, -1, -1, -1, -1}
-	maxs := []float64{0, 0, 0, 0, 0}
-	maxID := []int{-1, -1, -1, -1, -1}
+	mins := []float64{10000, 10000, 10000, 10000}
+	minID := []int{-1, -1, -1, -1}
+	maxs := []float64{0, 0, 0, 0}
+	maxID := []int{-1, -1, -1, -1}
 	log.Println("mins/maxs", mins, maxs)
 	for _, pid := range gameMap.Planets {
+		log.Println("Looking for playet",pid)
 		p := gameMap.PlanetLookup[pid]
-		if p.Owner == gameMap.MyId {
+		log.Println("Looking at planet", p.Id)
+		if p.Owned == 1 && p.Owner == gameMap.MyId {
+			log.Println("We own planet",p.Id)
 			for _, tid := range gameMap.Planets {
+				log.Println("  Looking for playet",tid)
 				t := gameMap.PlanetLookup[tid]
-				if t.Owner == gameMap.MyId || t.Owner == 0 {
+				log.Println("  Looking at planet",t.Id)
+				if (t.Owner == gameMap.MyId && t.Owned == 1) || t.Owned == 0 {
 					continue
 				}
+				log.Println("  Enemy Owns Planet",t.Id)
 				d := p.SqDistanceTo(&t.Point)
 				if d < mins[t.Owner] {
 					mins[t.Owner] = d

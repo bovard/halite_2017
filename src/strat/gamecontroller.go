@@ -57,6 +57,7 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 }
 
 func (self *GameController) AssignToPlanets() {
+	log.Println("Starting Planet assignments")
 	var free []*hlt.Planet
 	assignments := make(map[int]int)
 
@@ -87,7 +88,7 @@ func (self *GameController) AssignToPlanets() {
 					sc.SetRushPlanet(self.GameMap)
 				} else {
 					p := self.GameMap.PlanetLookup[sc.TargetPlanet]
-					if p.Owner == 0 || p.Owner == self.GameMap.MyId {
+					if p.Owned == 0 || (p.Owned == 1 && p.Owner == self.GameMap.MyId) {
 						sc.SetRushPlanet(self.GameMap)
 					}
 				}
@@ -124,6 +125,7 @@ func (self *GameController) AssignToPlanets() {
 			}
 		}
 	}
+	log.Println("Done with planet assignments")
 }
 
 func (self *GameController) UpdateShipTurnInfos() {

@@ -100,12 +100,12 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 	enemyClosestPlanetDist := 100000000.0
 
 	for _, p := range planets {
-		if p.Owner == gameMap.MyId {
+		if p.Owned == 1 && p.Owner == gameMap.MyId {
 			if p.Distance < alliedClosestPlanetDist {
 				alliedClosestPlanetDist = p.Distance
 				alliedClosestPlanet = p
 			}
-		} else if p.Owner != 0 {
+		} else if p.Owned == 1 {
 			if p.Distance < enemyClosestPlanetDist {
 				enemyClosestPlanetDist = p.Distance
 				enemyClosestPlanet = p

@@ -19,8 +19,8 @@ type GameTurnInfo struct {
 
 func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnInfo {
 	myId := gameMap.MyId
-	myShipCount := len(gameMap.Players[myId].Ships)
 
+	myShipCount := len(gameMap.MyShips)
 	shipDiff := len(oldGameMap.EnemyShips) - len(gameMap.EnemyShips) 
 	shipPer := float64(len(gameMap.EnemyShips)) / float64(len(oldGameMap.EnemyShips))
 
@@ -30,8 +30,8 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 	minOpponentCount := 1000000
 	numOpponents := 0
 	for idx := range gameMap.Players {
-		if idx == myId {
-			continue
+		playerId := gameMap.Players[idx].Id
+		if playerId == myId {
 		}
 		numShips := len(gameMap.Players[idx].Ships)
 		if numShips > 0 {
@@ -49,15 +49,16 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 	numEnemyPlanets := 0
 	minEnemyDist := 10000.0
 	for _, p := range gameMap.PlanetLookup {
-		if p.Owner != gameMap.MyId {
-			numEnemyPlanets++
-		}
-		if p.Owner == gameMap.MyId {
-			for _, s := range gameMap.ShipLookup {
-				d := p.SqDistanceTo(&s.Point)
-				if d < minEnemyDist {
-					minEnemyDist = d
+		if p.Owned == 1 {
+			if p.Owner == gameMap.MyId {
+				for _, s := range gameMap.ShipLookup {
+					d := p.SqDistanceTo(&s.Point)
+					if d < minEnemyDist {
+						minEnemyDist = d
+					}
 				}
+			} else {
+				numEnemyPlanets++
 			}
 		}
 	}
