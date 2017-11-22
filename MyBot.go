@@ -3,6 +3,7 @@ package main
 import (
 	"./src/hlt"
 	"./src/strat"
+	"./src/strat/ships"
 	"fmt"
 	"log"
 	"os"
@@ -30,7 +31,7 @@ func main() {
 	gameturn := 1
 	gc := strat.GameController{
 		GameMap:         &gameMap,
-		ShipControllers: make(map[int]*strat.ShipController),
+		ShipControllers: make(map[int]*ships.ShipController),
 		ShipNumIdx:      1,
 	}
 

@@ -1,4 +1,4 @@
-package strat
+package ships
 
 type ChlMessage int
 

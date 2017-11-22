@@ -1,14 +1,17 @@
-package strat
+package ships
 
 import (
-	"../hlt"
+	"../../hlt"
 )
 
 type ShipTurnInfo struct {
 	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions                                                                                                                                                                     []*hlt.Ship
 	PossiblePlanetCollisions                                                                                                                                                                                                      []*hlt.Planet
-	TotalEnemies, TotalAllies, EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange, AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange int
-	ClosestNonDockedEnemyShipDistance, ClosestDockedEnemyShipDistance, ClosestNonDockedEnemyShipDir, ClosestDockedEnemyShipDir, ClosestEnemyShipDistance, ClosestEnemyShipDir, ClosestAlliedShipDistance, ClosestAlliedShipDir    float64
+	TotalEnemies, TotalAllies int
+	EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange int
+	AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange int
+	ClosestNonDockedEnemyShipDistance, ClosestDockedEnemyShipDistance, ClosestNonDockedEnemyShipDir, ClosestDockedEnemyShipDir, ClosestEnemyShipDistance, ClosestEnemyShipDir float64
+	ClosestAlliedShipDistance, ClosestAlliedShipDir    float64
 	ClosestNonDockedEnemyShip, ClosestDockedEnemyShip, ClosestEnemyShip, ClosestAlliedShip                                                                                                                                        *hlt.Ship
 	ClosestEnemyShipClosingDistance                                                                                                                                                                                               bool
 	PlanetsByDist                                                                                                                                                                                                                 []*hlt.Planet

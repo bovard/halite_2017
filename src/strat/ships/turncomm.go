@@ -1,4 +1,4 @@
-package strat
+package ships
 
 type TurnComm struct {
 	Chasing map[int]int

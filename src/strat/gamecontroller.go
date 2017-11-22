@@ -4,11 +4,12 @@ import (
 	"../hlt"
 	"log"
 	"sort"
+	"./ships"
 )
 
 type GameController struct {
 	GameMap         *hlt.GameMap
-	ShipControllers map[int]*ShipController
+	ShipControllers map[int]*ships.ShipController
 	ShipNumIdx      int
 	Info            GameTurnInfo
 }
@@ -26,12 +27,12 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 		ship := gameMap.ShipLookup[id]
 		_, contains := self.ShipControllers[ship.Entity.Id]
 		if !contains {
-			sc := ShipController{
+			sc := ships.ShipController{
 				Ship:         ship,
 				Past:         nil,
 				Id:           ship.Entity.Id,
 				TargetPlanet: -1,
-				Mission:      MISSION_NORMAL,
+				Mission:      ships.MISSION_NORMAL,
 				ShipNum:      self.ShipNumIdx,
 			}
 			self.ShipNumIdx++
@@ -80,12 +81,12 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if (sc.Mission == STUPID_RUN_AWAY_META) {
+		if (sc.Mission == ships.MISSION_RUN_AWAY) {
 			continue
 		}
 		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum%17 == 0 {
 			if self.Info.NumEnemyPlanets == 0 {
-				sc.Mission = MISSION_NORMAL
+				sc.Mission = ships.MISSION_NORMAL
 			} else {
 				if sc.TargetPlanet == -1 {
 					sc.SetRushPlanet(self.GameMap)
@@ -95,7 +96,7 @@ func (self *GameController) AssignToPlanets() {
 						sc.SetRushPlanet(self.GameMap)
 					}
 				}
-				sc.Mission = MISSION_RUSH_AND_DISTRACT
+				sc.Mission = ships.MISSION_SNEAKY
 				continue
 			}
 		}
@@ -121,10 +122,10 @@ func (self *GameController) AssignToPlanets() {
 			log.Println("Assigning", sc.Ship.Id, "to", closest)
 			sc.TargetPlanet = closest
 			if sc.ShipNum%15 == 0 && self.Info.ShipCountDeltaToLeader != 0 {
-				sc.Mission = MISSION_FOUND_PLANET
+				sc.Mission = ships.MISSION_SETTLER
 			}
 			if self.Info.NumEnemies > 1 && sc.ShipNum < 15 && sc.ShipNum > 3 && self.Info.MinEnemyDist > 35 {
-				sc.Mission = MISSION_FOUND_PLANET
+				sc.Mission = ships.MISSION_SETTLER
 			}
 		}
 	}
@@ -160,13 +161,13 @@ func (self *GameController) Act(turn int) []string {
 
 func (self *GameController) StupidRunAwayMeta() {
 	for _, sc := range self.ShipControllers {
-		sc.Mission = STUPID_RUN_AWAY_META
+		sc.Mission = ships.MISSION_RUN_AWAY
 	}
 }
 
 func (self *GameController) NormalMeta() {
 	for _, sc := range self.ShipControllers {
-		sc.Mission = MISSION_NORMAL
+		sc.Mission = ships.MISSION_NORMAL
 	}
 }
 
@@ -190,7 +191,7 @@ func (self *GameController) GameStart() {
 	}
 	if targetPlanet != -1 {
 		for _, sc := range self.ShipControllers {
-			sc.Mission = MISSION_FOUND_PLANET
+			sc.Mission = ships.MISSION_SETTLER
 			sc.TargetPlanet = targetPlanet
 		}
 	} else {
@@ -198,14 +199,14 @@ func (self *GameController) GameStart() {
 	}
 }
 
-func (self *GameController) GetSCsInOrder() []*ShipController {
-	scs := []*ShipController{}
+func (self *GameController) GetSCsInOrder() []*ships.ShipController {
+	scs := []*ships.ShipController{}
 	for _, sc := range self.ShipControllers {
 		sc.Distance = sc.Ship.SqDistanceTo(sc.Target)
 		scs = append(scs, sc)
 	}
 
-	sort.Sort(byDistSc(scs))
+	sort.Sort(ships.ByDistSc(scs))
 
 	return scs
 }
@@ -213,7 +214,7 @@ func (self *GameController) GetSCsInOrder() []*ShipController {
 func (self *GameController) ExecuteShipTurn(turn int) []string {
 	commandQueue := []string{}
 
-	turnComm := GetTurnComm()
+	turnComm := ships.GetTurnComm()
 	scs := self.GetSCsInOrder()
 
 	log.Println("Chasing is", turnComm.Chasing)
@@ -229,7 +230,7 @@ func (self *GameController) ExecuteShipTurn(turn int) []string {
 			cmd := sc.Act(self.GameMap, &turnComm)
 			log.Println(cmd)
 			commandQueue = append(commandQueue, cmd)
-		} else if sc.Mission == STUPID_RUN_AWAY_META && ship.DockingStatus == hlt.DOCKED {
+		} else if sc.Mission == ships.MISSION_RUN_AWAY && ship.DockingStatus == hlt.DOCKED {
 			cmd := ship.Undock()
 			log.Println(cmd)
 			commandQueue = append(commandQueue, cmd)
