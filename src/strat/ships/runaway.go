@@ -7,7 +7,6 @@ import (
 
 
 func (self *ShipController) RunAwaySetTarget(gameMap *hlt.GameMap) {
-
 	self.Target = &self.Info.ClosestEnemyShip.Point
 }
 

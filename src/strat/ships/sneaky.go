@@ -11,6 +11,7 @@ import (
 func (self *ShipController) SneakySetTarget(gameMap *hlt.GameMap) {
 	if self.Info.EnemyClosestPlanetDist < 20 && self.Info.ClosestAlliedShipDistance < 20 {
 		log.Println("Allies nearby, switch to normal mode")
+		self.TargetPlanet = -1
 		self.Mission = MISSION_NORMAL
 		self.NormalSetTarget(gameMap)
 	} else {
