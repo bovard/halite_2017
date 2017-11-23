@@ -201,7 +201,6 @@ func (self *ShipController) combat(gameMap *hlt.GameMap, turnComm *TurnComm) (Ch
 	canKillSuicideOnProduction := self.Info.ClosestDockedEnemy.Distance < hlt.SHIP_MAX_SPEED && self.Info.ClosestDockedEnemy.Ship.IsAliveNextTurn() && self.HeadingIsClear(int(self.Info.ClosestDockedEnemy.Distance+.5), self.Info.ClosestDockedEnemy.Direction, gameMap, self.Info.ClosestDockedEnemy.Ship.Id)
 	canKillSuicideOnNearestEnemy := self.Info.ClosestNonDockedEnemy.Distance < hlt.SHIP_MAX_SPEED && self.Info.ClosestNonDockedEnemy.Ship.IsAliveNextTurn() && self.HeadingIsClear(int(self.Info.ClosestNonDockedEnemy.Distance+.5), self.Info.ClosestNonDockedEnemy.Direction, gameMap, self.Info.ClosestNonDockedEnemy.Ship.Id)
 
-
 	if canKillSuicideOnProduction && self.Ship.Health <= 2.0*hlt.SHIP_DAMAGE*(float64(self.Info.EnemiesInCombatRange)+float64(self.Info.EnemiesInThreatRange)) && self.Info.ClosestDockedEnemy.Ship.Health > hlt.SHIP_DAMAGE/2 {
 		message = COMBAT_SUICIDE_ON_PRODUCTION_DUE_TO_LOWER_HEALTH
 		heading = self.UnsafeMoveToPoint(&self.Info.ClosestDockedEnemy.Ship.Point, gameMap, true)
