@@ -267,6 +267,9 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 }
 
 func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
+	if self.Ship.DockingStatus != hlt.UNDOCKED {
+		return
+	}
 	if self.Mission == MISSION_NORMAL {
 		self.NormalSetTarget(gameMap)
 	} else if self.Mission == MISSION_SETTLER {
@@ -305,7 +308,9 @@ func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string
 		message, heading = self.SettlerAct(gameMap, turnComm)
 	}
 
+	log.Println("Should we dock?", message, DOCK)
 	if message == DOCK {
+		log.Println("You should dock")
 		planet := gameMap.PlanetLookup[self.TargetPlanet]
 		return self.Ship.Dock(planet)
 	}
