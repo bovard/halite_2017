@@ -2,9 +2,9 @@ package strat
 
 import (
 	"../hlt"
+	"./ships"
 	"log"
 	"sort"
-	"./ships"
 )
 
 type GameController struct {
@@ -21,7 +21,6 @@ func (self *GameController) Update(gameMap *hlt.GameMap) {
 
 	self.Info = CreateGameTurnInfo(gameMap, self.GameMap)
 	self.GameMap = gameMap
-
 
 	for _, id := range gameMap.MyShips {
 		ship := gameMap.ShipLookup[id]
@@ -81,7 +80,7 @@ func (self *GameController) AssignToPlanets() {
 	}
 
 	for _, sc := range self.ShipControllers {
-		if (sc.Mission == ships.MISSION_RUN_AWAY) {
+		if sc.Mission == ships.MISSION_RUN_AWAY {
 			continue
 		}
 		if (sc.ShipNum == 5 && self.Info.NumEnemies == 1) || sc.ShipNum%17 == 0 {

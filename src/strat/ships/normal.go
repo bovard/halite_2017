@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-
 func (self *ShipController) NormalSetTarget(gameMap *hlt.GameMap) {
 	if self.TargetPlanet == -1 {
 		self.Target = &self.Info.ClosestEnemyShip.Point
@@ -22,7 +21,6 @@ func (self *ShipController) NormalSetTarget(gameMap *hlt.GameMap) {
 	}
 
 }
-
 
 func (self *ShipController) NormalAct(gameMap *hlt.GameMap, turnComm *TurnComm) (ChlMessage, hlt.Heading) {
 	heading := hlt.Heading{

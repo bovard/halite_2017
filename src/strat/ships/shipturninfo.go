@@ -5,19 +5,19 @@ import (
 )
 
 type ShipTurnInfo struct {
-	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions                                                                                                                                                                     []*hlt.Ship
-	PossiblePlanetCollisions                                                                                                                                                                                                      []*hlt.Planet
-	TotalEnemies, TotalAllies int
-	EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange int
-	AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange int
+	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions                                                                                                                 []*hlt.Ship
+	PossiblePlanetCollisions                                                                                                                                                  []*hlt.Planet
+	TotalEnemies, TotalAllies                                                                                                                                                 int
+	EnemiesInCombatRange, EnemiesDockedInCombatRange, EnemiesInThreatRange, EnemiesInActiveThreatRange                                                                        int
+	AlliesInCombatRange, AlliesDockedInCombatRange, AlliesInThreatRange, AlliesInActiveThreatRange                                                                            int
 	ClosestNonDockedEnemyShipDistance, ClosestDockedEnemyShipDistance, ClosestNonDockedEnemyShipDir, ClosestDockedEnemyShipDir, ClosestEnemyShipDistance, ClosestEnemyShipDir float64
-	ClosestAlliedShipDistance, ClosestAlliedShipDir    float64
-	ClosestNonDockedEnemyShip, ClosestDockedEnemyShip, ClosestEnemyShip, ClosestAlliedShip                                                                                                                                        *hlt.Ship
-	ClosestEnemyShipClosingDistance                                                                                                                                                                                               bool
-	PlanetsByDist                                                                                                                                                                                                                 []*hlt.Planet
-	EnemiesByDist, AlliesByDist                                                                                                                                                                                                   []*hlt.Ship
-	AlliedClosestPlanet, EnemyClosestPlanet                                                                                                                                                                                       *hlt.Planet
-	AlliedClosestPlanetDist, EnemyClosestPlanetDist                                                                                                                                                                               float64
+	ClosestAlliedShipDistance, ClosestAlliedShipDir                                                                                                                           float64
+	ClosestNonDockedEnemyShip, ClosestDockedEnemyShip, ClosestEnemyShip, ClosestAlliedShip                                                                                    *hlt.Ship
+	ClosestEnemyShipClosingDistance                                                                                                                                           bool
+	PlanetsByDist                                                                                                                                                             []*hlt.Planet
+	EnemiesByDist, AlliesByDist                                                                                                                                               []*hlt.Ship
+	AlliedClosestPlanet, EnemyClosestPlanet                                                                                                                                   *hlt.Planet
+	AlliedClosestPlanetDist, EnemyClosestPlanetDist                                                                                                                           float64
 }
 
 func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {

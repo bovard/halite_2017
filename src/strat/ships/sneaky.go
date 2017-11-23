@@ -2,11 +2,9 @@ package ships
 
 import (
 	"../../hlt"
-	"math"
 	"log"
+	"math"
 )
-
-
 
 func (self *ShipController) SneakySetTarget(gameMap *hlt.GameMap) {
 	if self.Info.EnemyClosestPlanetDist < 20 && self.Info.ClosestAlliedShipDistance < 20 {
@@ -79,19 +77,19 @@ func (self *ShipController) SetRushPlanet(gameMap *hlt.GameMap) {
 	maxID := []int{-1, -1, -1, -1}
 	log.Println("mins/maxs", mins, maxs)
 	for _, pid := range gameMap.Planets {
-		log.Println("Looking for playet",pid)
+		log.Println("Looking for playet", pid)
 		p := gameMap.PlanetLookup[pid]
 		log.Println("Looking at planet", p.Id)
 		if p.Owned == 1 && p.Owner == gameMap.MyId {
-			log.Println("We own planet",p.Id)
+			log.Println("We own planet", p.Id)
 			for _, tid := range gameMap.Planets {
-				log.Println("  Looking for playet",tid)
+				log.Println("  Looking for playet", tid)
 				t := gameMap.PlanetLookup[tid]
-				log.Println("  Looking at planet",t.Id)
+				log.Println("  Looking at planet", t.Id)
 				if (t.Owner == gameMap.MyId && t.Owned == 1) || t.Owned == 0 {
 					continue
 				}
-				log.Println("  Enemy Owns Planet",t.Id)
+				log.Println("  Enemy Owns Planet", t.Id)
 				d := p.SqDistanceTo(&t.Point)
 				if d < mins[t.Owner] {
 					mins[t.Owner] = d

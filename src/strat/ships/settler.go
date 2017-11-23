@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-
 func (self *ShipController) SettlerSetTarget(gameMap *hlt.GameMap) {
 	if self.TargetPlanet == -1 {
 		log.Println("We don't have a valid target, switching to normal")
@@ -21,7 +20,6 @@ func (self *ShipController) SettlerSetTarget(gameMap *hlt.GameMap) {
 		self.Target = &planet.Point
 	}
 }
-
 
 func (self *ShipController) SettlerAct(gameMap *hlt.GameMap, turnComm *TurnComm) (ChlMessage, hlt.Heading) {
 	heading := hlt.Heading{

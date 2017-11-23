@@ -4,17 +4,13 @@ import (
 	"../../hlt"
 )
 
-
-
 func (self *ShipController) RunAwaySetTarget(gameMap *hlt.GameMap) {
 	self.Target = &self.Info.ClosestEnemyShip.Point
 }
 
-
 func (self *ShipController) RunAwayAct(gameMap *hlt.GameMap, turnComm *TurnComm) (ChlMessage, hlt.Heading) {
 	return self.stupidRunAwayMeta(gameMap)
 }
-
 
 func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Heading) {
 	heading := hlt.Heading{

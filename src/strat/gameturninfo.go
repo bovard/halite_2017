@@ -21,7 +21,7 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 	myId := gameMap.MyId
 
 	myShipCount := len(gameMap.MyShips)
-	shipDiff := len(oldGameMap.EnemyShips) - len(gameMap.EnemyShips) 
+	shipDiff := len(oldGameMap.EnemyShips) - len(gameMap.EnemyShips)
 	shipPer := float64(len(gameMap.EnemyShips)) / float64(len(oldGameMap.EnemyShips))
 
 	primaryOpponentDied := shipDiff > 20 && shipPer < .3
@@ -75,6 +75,6 @@ func CreateGameTurnInfo(gameMap *hlt.GameMap, oldGameMap *hlt.GameMap) GameTurnI
 		NumEnemyPlanets:           numEnemyPlanets,
 		NumEnemies:                numOpponents,
 		PrimaryOpponentDied:       primaryOpponentDied,
-		MinEnemyDist: 			   minEnemyDist,
+		MinEnemyDist:              minEnemyDist,
 	}
 }

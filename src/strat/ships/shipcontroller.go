@@ -249,8 +249,6 @@ func (self *ShipController) UpdateInfo(gameMap *hlt.GameMap) {
 	self.Info = CreateShipTurnInfo(self.Ship, gameMap)
 }
 
-
-
 func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 	ne := gameMap.GetNECorner()
 	nw := gameMap.GetNWCorner()
@@ -267,9 +265,6 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 	}
 	return ne
 }
-
-
-
 
 func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
 	if self.Mission == MISSION_NORMAL {
@@ -308,7 +303,7 @@ func (self *ShipController) Act(gameMap *hlt.GameMap, turnComm *TurnComm) string
 		message, heading = self.NormalAct(gameMap, turnComm)
 	} else if self.Mission == MISSION_SETTLER {
 		message, heading = self.SettlerAct(gameMap, turnComm)
-	} 
+	}
 
 	if message == DOCK {
 		planet := gameMap.PlanetLookup[self.TargetPlanet]
