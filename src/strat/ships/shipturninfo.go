@@ -4,6 +4,12 @@ import (
 	"../../hlt"
 )
 
+type ShipInfo struct {
+	Exists bool
+	Distance, Direction float64
+	Ship *hlt.Ship
+}
+
 type ShipTurnInfo struct {
 	PossibleEnemyShipCollisions, PossibleAlliedShipCollisions       []*hlt.Ship
 	PossiblePlanetCollisions                                        []*hlt.Planet
@@ -12,12 +18,10 @@ type ShipTurnInfo struct {
 	EnemiesInThreatRange, EnemiesInActiveThreatRange                int
 	AlliesInCombatRange, AlliesDockedInCombatRange                  int
 	AlliesInThreatRange, AlliesInActiveThreatRange                  int
-	ClosestNonDockedEnemyShipDistance, ClosestNonDockedEnemyShipDir float64
-	ClosestDockedEnemyShipDistance, ClosestDockedEnemyShipDir       float64
-	ClosestEnemyShipDistance, ClosestEnemyShipDir                   float64
-	ClosestAlliedShipDistance, ClosestAlliedShipDir                 float64
-	ClosestNonDockedEnemyShip, ClosestDockedEnemyShip               *hlt.Ship
-	ClosestEnemyShip, ClosestAlliedShip                             *hlt.Ship
+	ClosestNonDockedEnemy *ShipInfo
+	ClosestDockedEnemy *ShipInfo
+	ClosestEnemy *ShipInfo
+	ClosestAlly *ShipInfo
 	ClosestEnemyShipClosingDistance                                 bool
 	PlanetsByDist                                                   []*hlt.Planet
 	EnemiesByDist, AlliesByDist                                     []*hlt.Ship
@@ -60,45 +64,66 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 	alliesDockedInCombatRange := 0
 	alliesInThreatRange := 0
 	alliesInActiveThreatRange := 0
-	closestAlliedShipDistance := allies[0].Distance
-	closestAlliedShip := gameMap.ShipLookup[allies[0].Id]
-	closestAlliedShipDir := ship.AngleTo(&closestAlliedShip.Point)
-	if len(allies) > 1 {
-		closestAlliedShipDistance = allies[1].Distance
-		closestAlliedShip = gameMap.ShipLookup[allies[1].Id]
-		closestAlliedShipDir = ship.AngleTo(&closestAlliedShip.Point)
+	closestAlly := ShipInfo {
+		Distance: 10000.0,
+		Exists: false,
 	}
-	closestEnemyShipDistance := enemies[0].Distance
+	if len(allies) > 1 {
+		ship := gameMap.ShipLookup[allies[1].Id]
+		closestAlly = ShipInfo {
+			Distance: allies[1].Distance,
+			Exists: true,
+			Ship: ship,
+			Direction: ship.AngleTo(&ship.Point),
+		}
+	}
 	closestEnemyShip := gameMap.ShipLookup[enemies[0].Id]
-	closestEnemyShipDir := ship.AngleTo(&closestEnemyShip.Point)
+	closestEnemy := ShipInfo {
+		Exists: true,
+		Distance: enemies[0].Distance,
+		Ship: closestEnemyShip,
+		Direction: ship.AngleTo(&closestEnemyShip.Point),
+	}
 	v2e := ship.Vel.Add(&closestEnemyShip.Vel)
 	closestEnemyShipClosingDistance := v2e.Magnitude() < ship.Vel.Magnitude()
-	var closestDockedEnemyShip *hlt.Ship
-	var closestNonDockedEnemyShip *hlt.Ship
-	var closestDockedEnemyShipDir float64
-	var closestNonDockedEnemyShipDir float64
-	closestDockedEnemyShipDistance := 100000000.0
-	closestNonDockedEnemyShipDistance := 100000000.0
+
+	closestDockedEnemy := ShipInfo {
+		Exists: false,
+		Distance: 10000,
+	}
+	closestNonDockedEnemy := ShipInfo {
+		Exists: false,
+		Distance: 10000,
+	}
 
 	foundNon := false
 	foundDocked := false
 	for _, e := range enemies {
 		if e.DockingStatus == hlt.UNDOCKED && !foundNon {
-			closestNonDockedEnemyShip = e
-			closestNonDockedEnemyShipDistance = e.Distance
-			closestNonDockedEnemyShipDir = ship.AngleTo(&e.Point)
+			closestDockedEnemy = ShipInfo {
+				Exists: true,
+				Ship: e,
+				Distance: e.Distance,
+				Direction: ship.AngleTo(&e.Point),
+			}
 			foundNon = true
+
 		}
 		if e.DockingStatus != hlt.UNDOCKED && !foundDocked {
-			closestDockedEnemyShip = e
-			closestDockedEnemyShipDistance = e.Distance
-			closestDockedEnemyShipDir = ship.AngleTo(&e.Point)
+			closestNonDockedEnemy = ShipInfo {
+				Exists: true,
+				Ship: e,
+				Distance: e.Distance,
+				Direction: ship.AngleTo(&e.Point),
+			}
 			foundDocked = true
 		}
 		if foundDocked && foundNon {
 			break
 		}
 	}
+
+
 
 	planets := gameMap.NearestPlanetsByDistance(ship)
 
@@ -174,19 +199,11 @@ func CreateShipTurnInfo(ship *hlt.Ship, gameMap *hlt.GameMap) ShipTurnInfo {
 		AlliesInThreatRange:               alliesInThreatRange,
 		AlliesInActiveThreatRange:         alliesInActiveThreatRange,
 		TotalAllies:                       alliesInCombatRange + alliesInThreatRange + alliesInActiveThreatRange,
-		ClosestEnemyShipDistance:          closestEnemyShipDistance,
-		ClosestDockedEnemyShipDistance:    closestDockedEnemyShipDistance,
-		ClosestNonDockedEnemyShipDistance: closestNonDockedEnemyShipDistance,
-		ClosestEnemyShipDir:               closestEnemyShipDir,
-		ClosestEnemyShipClosingDistance:   closestEnemyShipClosingDistance,
-		ClosestDockedEnemyShipDir:         closestDockedEnemyShipDir,
-		ClosestNonDockedEnemyShipDir:      closestNonDockedEnemyShipDir,
-		ClosestAlliedShipDistance:         closestAlliedShipDistance,
-		ClosestAlliedShipDir:              closestAlliedShipDir,
-		ClosestEnemyShip:                  closestEnemyShip,
-		ClosestDockedEnemyShip:            closestDockedEnemyShip,
-		ClosestNonDockedEnemyShip:         closestNonDockedEnemyShip,
-		ClosestAlliedShip:                 closestAlliedShip,
+		ClosestAlly: &closestAlly,
+		ClosestEnemy: &closestEnemy,
+		ClosestNonDockedEnemy: &closestNonDockedEnemy,
+		ClosestDockedEnemy: &closestDockedEnemy,
+		ClosestEnemyShipClosingDistance: closestEnemyShipClosingDistance,
 		PlanetsByDist:                     planets,
 		EnemiesByDist:                     enemies,
 		AlliesByDist:                      allies,

@@ -7,7 +7,7 @@ import (
 )
 
 func (self *ShipController) SneakySetTarget(gameMap *hlt.GameMap) {
-	if self.Info.EnemyClosestPlanetDist < 20 && self.Info.ClosestAlliedShipDistance < 20 {
+	if self.Info.EnemyClosestPlanetDist < 20 && self.Info.ClosestAlly.Distance < 20 {
 		log.Println("Allies nearby, switch to normal mode")
 		self.TargetPlanet = -1
 		self.Mission = MISSION_NORMAL
@@ -35,7 +35,7 @@ func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, h
 
 	if self.Info.TotalEnemies > 0 {
 		message = RUSH_AVOIDING_ENEMY
-		vAway := self.Info.ClosestNonDockedEnemyShip.VectorTo(&self.Ship.Point)
+		vAway := self.Info.ClosestNonDockedEnemy.Ship.VectorTo(&self.Ship.Point)
 		vAway = vAway.RescaleToMag(int(hlt.SHIP_MAX_SPEED))
 		toGo := vToTarget.Add(&vAway)
 		if self.Info.AlliedClosestPlanetDist < 1000 && self.Info.AlliedClosestPlanetDist < 1.5*self.Info.EnemyClosestPlanetDist {
@@ -47,9 +47,9 @@ func (self *ShipController) rushAndDistract(gameMap *hlt.GameMap) (ChlMessage, h
 		toGo = toGo.RescaleToMag(int(hlt.SHIP_MAX_SPEED) + 1)
 		targetPos := self.Ship.AddVector(&toGo)
 		heading = self.MoveToPoint(&targetPos, gameMap)
-	} else if dToTarget < 20 && self.Info.ClosestDockedEnemyShipDistance < 100 {
+	} else if dToTarget < 20 && self.Info.ClosestDockedEnemy.Distance < 100 {
 		message = RUSH_KILLING_DOCKED
-		heading = self.MoveToShip(self.Info.ClosestDockedEnemyShip, gameMap)
+		heading = self.MoveToShip(self.Info.ClosestDockedEnemy.Ship, gameMap)
 	} else {
 		toP := self.Ship.AngleTo(&p.Point)
 		newAng := toP - math.Pi/4

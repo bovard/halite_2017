@@ -5,7 +5,7 @@ import (
 )
 
 func (self *ShipController) RunAwaySetTarget(gameMap *hlt.GameMap) {
-	self.Target = &self.Info.ClosestEnemyShip.Point
+	self.Target = &self.Info.ClosestEnemy.Ship.Point
 }
 
 func (self *ShipController) RunAwayAct(gameMap *hlt.GameMap, turnComm *TurnComm) (ChlMessage, hlt.Heading) {
@@ -19,7 +19,7 @@ func (self *ShipController) runAway(gameMap *hlt.GameMap) (ChlMessage, hlt.Headi
 	}
 	message := RUN_AWAY
 
-	dir := self.Info.ClosestEnemyShip.AngleTo(&self.Ship.Point)
+	dir := self.Info.ClosestEnemy.Ship.AngleTo(&self.Ship.Point)
 	targetPos := self.Ship.Point.AddThrust(hlt.SHIP_MAX_SPEED, dir)
 
 	heading = self.MoveToPoint(&targetPos, gameMap)
