@@ -10,11 +10,12 @@ func (self *ShipController) NormalSetTarget(gameMap *hlt.GameMap) {
 		self.Target = &self.Info.ClosestEnemy.Ship.Point
 	} else if self.TargetPlanet != -1 {
 		valid, _ := self.IsTargetPlanetStillMoveTarget(gameMap)
-		if valid {
+		canDock := self.CanWeDockOnTargetPlanet(gameMap)
+		if valid && canDock {
 			planet := gameMap.PlanetLookup[self.TargetPlanet]
 			self.Target = &planet.Point
 		} else {
-			log.Println("invalid planet, moving to enemy")
+			log.Println("need to move to enemy")
 			self.Target = &self.Info.ClosestEnemy.Ship.Point
 			self.TargetPlanet = -1
 		}
