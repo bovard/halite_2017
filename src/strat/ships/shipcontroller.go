@@ -268,10 +268,11 @@ func nextCorner(current hlt.Point, gameMap *hlt.GameMap) hlt.Point {
 
 func (self *ShipController) SetTarget(gameMap *hlt.GameMap) {
 	if self.Ship.DockingStatus != hlt.UNDOCKED {
+		log.Println("We are docking, docked, or undocking")
 		self.Target = &self.Info.PlanetsByDist[0].Point
 		self.TargetPlanet = self.Info.PlanetsByDist[0].Id
-	}
-	if self.Mission == MISSION_NORMAL {
+		log.Println("Target planet is",self.TargetPlanet)
+	} else if self.Mission == MISSION_NORMAL {
 		self.NormalSetTarget(gameMap)
 	} else if self.Mission == MISSION_SETTLER {
 		self.SettlerSetTarget(gameMap)
