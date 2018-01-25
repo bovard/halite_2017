@@ -2,4 +2,4 @@
 
 My submission to the [Halite 2](halite.io) competition, written in go.
 
-![results](./results.png)
+![results](./result.png)
